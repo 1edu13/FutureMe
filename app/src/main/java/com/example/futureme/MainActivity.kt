@@ -4,66 +4,73 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
 import com.example.futureme.ui.theme.FUTUREMETheme
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var auth: FirebaseAuth
+    private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        auth = Firebase.auth
-
         setContent {
             FUTUREMETheme {
-                // Esta es la lógica de navegación principal.
-                // Comprueba si hay un usuario logueado al iniciar la app.
-                if (auth.currentUser == null) {
-                    // Si no hay nadie, muestra la pantalla de login.
-                    LoginScreen()
+                val user by authViewModel.user.collectAsState()
+
+                if (user == null) {
+                    LoginScreen(authViewModel = authViewModel)
                 } else {
-                    // Si ya hay alguien, muestra la pantalla principal de la app.
-                    HomeScreen()
+                    HomeScreen(authViewModel = authViewModel)
                 }
             }
         }
     }
 }
 
-/**
- * Pantalla principal de la aplicación que ve el usuario al iniciar sesión.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(authViewModel: AuthViewModel) {
     Scaffold(
-        // Añadimos el botón flotante para crear nuevas cápsulas.
+        topBar = {
+            TopAppBar(
+                title = { Text("Mis Cápsulas") },
+                actions = {
+                    // Botón para cerrar sesión
+                    IconButton(onClick = { authViewModel.signOut() }) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { /* TODO: Navegar a la pantalla de crear cápsula */ }) {
                 Icon(Icons.Default.Add, contentDescription = "Crear nueva cápsula")
             }
         }
     ) { innerPadding ->
-        // En el centro, mostraremos la lista de cápsulas del usuario.
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Text(text = "Aquí irá la lista de cápsulas")
         }
     }
@@ -73,6 +80,6 @@ fun HomeScreen() {
 @Composable
 fun HomeScreenPreview() {
     FUTUREMETheme {
-        HomeScreen()
+        HomeScreen(authViewModel = AuthViewModel())
     }
 }
