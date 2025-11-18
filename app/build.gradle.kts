@@ -66,4 +66,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
+    implementation("androidx.compose.material:material-icons-extended:<version>")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
 }
