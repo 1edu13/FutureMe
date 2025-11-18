@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1057792053232",
+    "project_id": "futuremev2",
+    "storage_bucket": "futuremev2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1057792053232:android:a2294585526dc4ad29d735",
+        "android_client_info": {
+          "package_name": "com.example.futureme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzV2MJdJNyHtJ0PbUnW1nkhVG2iQDNYvk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

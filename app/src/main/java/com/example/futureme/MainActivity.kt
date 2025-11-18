@@ -4,91 +4,75 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import com.example.futureme.ui.auth.LoginScreen
 import com.example.futureme.ui.theme.FUTUREMETheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        auth = Firebase.auth
+
         setContent {
             FUTUREMETheme {
-                FUTUREMEApp()
+                // Esta es la lógica de navegación principal.
+                // Comprueba si hay un usuario logueado al iniciar la app.
+                if (auth.currentUser == null) {
+                    // Si no hay nadie, muestra la pantalla de login.
+                    LoginScreen()
+                } else {
+                    // Si ya hay alguien, muestra la pantalla principal de la app.
+                    HomeScreen()
+                }
             }
         }
     }
 }
 
-@PreviewScreenSizes
+/**
+ * Pantalla principal de la aplicación que ve el usuario al iniciar sesión.
+ */
 @Composable
-fun FUTUREMEApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
-
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
+fun HomeScreen() {
+    Scaffold(
+        // Añadimos el botón flotante para crear nuevas cápsulas.
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /* TODO: Navegar a la pantalla de crear cápsula */ }) {
+                Icon(Icons.Default.Add, contentDescription = "Crear nueva cápsula")
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
-            )
+    ) { innerPadding ->
+        // En el centro, mostraremos la lista de cápsulas del usuario.
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "Aquí irá la lista de cápsulas")
         }
     }
 }
 
-enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector,
-) {
-    HOME("Home", Icons.Default.Home),
-    FAVORITES("Favorites", Icons.Default.Favorite),
-    PROFILE("Profile", Icons.Default.AccountBox),
-}
-
+@Preview(showBackground = true, name = "Home Screen Preview")
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
+fun HomeScreenPreview() {
     FUTUREMETheme {
-        Greeting("Android")
+        HomeScreen()
     }
 }
