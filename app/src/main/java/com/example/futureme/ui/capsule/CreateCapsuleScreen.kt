@@ -20,12 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.LocalDateTime
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,8 +44,8 @@ fun CreateCapsuleScreen(
     CreateCapsuleScreenContent(
         isLoading = isLoading,
         error = error,
-        onSave = { title, text, openDateTime, imageUris ->
-            capsuleViewModel.saveCapsule(title, text, openDateTime, imageUris)
+        onSave = { title, text, openDateTime ->
+            capsuleViewModel.saveCapsule(title, text, openDateTime)
         },
         onNavigateBack = onNavigateBack
     )
@@ -58,13 +56,12 @@ fun CreateCapsuleScreen(
 fun CreateCapsuleScreenContent(
     isLoading: Boolean,
     error: String?,
-    onSave: (String, String, LocalDateTime, List<Uri>) -> Unit,
+    onSave: (String, String, Calendar) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
+    var openDate by remember { mutableStateOf<Calendar?>(null) }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -77,13 +74,9 @@ fun CreateCapsuleScreenContent(
 
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState(is24Hour = true)
-    val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-    val openDateText = remember(selectedDate, selectedTime) {
-        if (selectedDate != null && selectedTime != null) {
-            LocalDateTime.of(selectedDate, selectedTime).format(dateTimeFormatter)
-        } else {
-            ""
-        }
+    val dateTimeFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
+    val openDateText = remember(openDate) {
+        openDate?.let { dateTimeFormatter.format(it.time) } ?: ""
     }
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -168,12 +161,12 @@ fun CreateCapsuleScreenContent(
             } else {
                 Button(
                     onClick = { 
-                        selectedDate?.atTime(selectedTime)?.let {
-                            onSave(title, text, it, selectedImageUris)
+                        openDate?.let {
+                            onSave(title, text, it)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && title.isNotBlank() && text.isNotBlank() && selectedDate != null && selectedTime != null
+                    enabled = !isLoading && title.isNotBlank() && text.isNotBlank() && openDate != null
                 ) {
                     Text("Guardar Cápsula")
                 }
@@ -186,8 +179,17 @@ fun CreateCapsuleScreenContent(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = { 
-                    datePickerState.selectedDateMillis?.let {
-                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    datePickerState.selectedDateMillis?.let { utcMillis ->
+                        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                        utcCal.timeInMillis = utcMillis
+                        val year = utcCal.get(Calendar.YEAR)
+                        val month = utcCal.get(Calendar.MONTH)
+                        val day = utcCal.get(Calendar.DAY_OF_MONTH)
+
+                        val localCal = Calendar.getInstance()
+                        localCal.clear()
+                        localCal.set(year, month, day)
+                        openDate = localCal
                     }
                     showDatePicker = false
                     showTimePicker = true 
@@ -206,7 +208,14 @@ fun CreateCapsuleScreenContent(
             text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TimePicker(state = timePickerState) } },
             confirmButton = {
                 TextButton(onClick = {
-                    selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                    val calendarToUpdate = openDate ?: Calendar.getInstance()
+                    calendarToUpdate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                    calendarToUpdate.set(Calendar.MINUTE, timePickerState.minute)
+                    
+                    val finalCalendar = Calendar.getInstance()
+                    finalCalendar.time = calendarToUpdate.time
+                    openDate = finalCalendar
+                    
                     showTimePicker = false
                 }) { Text("Aceptar") }
             },

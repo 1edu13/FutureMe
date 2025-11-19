@@ -1,6 +1,5 @@
 package com.example.futureme.ui.capsule
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,8 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.util.Calendar
 
 class CapsuleViewModel : ViewModel() {
 
@@ -54,7 +52,6 @@ class CapsuleViewModel : ViewModel() {
                     .await()
 
                 val capsuleList = result.documents.mapNotNull { doc ->
-                    // Mapeo manual para evitar problemas con la deserialización automática
                     Capsule(
                         id = doc.id,
                         title = doc.getString("title") ?: "",
@@ -73,7 +70,7 @@ class CapsuleViewModel : ViewModel() {
         }
     }
 
-    fun saveCapsule(title: String, text: String, openDateTime: LocalDateTime, imageUris: List<Uri>) {
+    fun saveCapsule(title: String, text: String, openDateTime: Calendar) {
         val userId = auth.currentUser?.uid
 
         if (userId == null) {
@@ -92,20 +89,19 @@ class CapsuleViewModel : ViewModel() {
             _saveSuccess.value = false
 
             try {
-                // Convertimos el LocalDateTime a un Timestamp de Firebase
-                val openTimestamp = Timestamp(openDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), 0)
+                val openTimestamp = Timestamp(openDateTime.time)
 
                 val capsuleData = hashMapOf(
                     "creatorId" to userId,
                     "title" to title,
                     "text" to text,
                     "createdAt" to FieldValue.serverTimestamp(),
-                    "openDate" to openTimestamp, // Guardamos la fecha de apertura
+                    "openDate" to openTimestamp,
                     "status" to "PENDING"
                 )
 
                 db.collection("capsules").add(capsuleData).await()
-                loadCapsules() // Recargamos las cápsulas
+                loadCapsules()
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
