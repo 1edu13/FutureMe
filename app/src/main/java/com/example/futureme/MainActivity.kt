@@ -5,9 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
@@ -18,16 +18,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.futureme.data.model.Capsule
 import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
 import com.example.futureme.ui.capsule.CapsuleViewModel
 import com.example.futureme.ui.capsule.CreateCapsuleScreen
 import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.FUTUREMETheme
+import java.text.DateFormat
 
 class MainActivity : ComponentActivity() {
 
@@ -50,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavHost(
-    authViewModel: AuthViewModel, 
+    authViewModel: AuthViewModel,
     capsuleViewModel: CapsuleViewModel
 ) {
     val navController = rememberNavController()
@@ -75,13 +79,13 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreen(
                 authViewModel = authViewModel,
+                capsuleViewModel = capsuleViewModel,
                 onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) }
             )
         }
         composable(Screen.CreateCapsule.route) {
-            // ¡Aquí está la corrección!
             CreateCapsuleScreen(
-                capsuleViewModel = capsuleViewModel, 
+                capsuleViewModel = capsuleViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -92,8 +96,13 @@ fun AppNavHost(
 @Composable
 fun HomeScreen(
     authViewModel: AuthViewModel,
+    capsuleViewModel: CapsuleViewModel,
     onNavigateToCreate: () -> Unit
 ) {
+    val capsules by capsuleViewModel.capsules.collectAsState()
+    val isLoading by capsuleViewModel.isLoading.collectAsState()
+    val error by capsuleViewModel.error.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -111,11 +120,63 @@ fun HomeScreen(
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
         ) {
-            Text(text = "Aquí irá la lista de cápsulas")
+            if (isLoading && capsules.isEmpty()) { // Show loader only on initial load
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            error?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+            }
+
+            if (capsules.isEmpty() && !isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Aún no tienes cápsulas. ¡Crea una!")
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(capsules) { capsule ->
+                        CapsuleItem(capsule = capsule)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CapsuleItem(capsule: Capsule) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = capsule.title, style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = capsule.text,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            val openDate = capsule.openDate.toDate()
+            Text(
+                text = "Se abre el: ${DateFormat.getDateInstance(DateFormat.MEDIUM).format(openDate)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

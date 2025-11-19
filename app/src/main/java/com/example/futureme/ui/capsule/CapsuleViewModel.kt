@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.futureme.data.model.Capsule
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
@@ -29,6 +30,48 @@ class CapsuleViewModel : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    private val _capsules = MutableStateFlow<List<Capsule>>(emptyList())
+    val capsules: StateFlow<List<Capsule>> = _capsules
+
+    init {
+        loadCapsules()
+    }
+
+    fun loadCapsules() {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _error.value = "Usuario no autenticado."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = db.collection("capsules")
+                    .whereEqualTo("creatorId", userId)
+                    .get()
+                    .await()
+
+                val capsuleList = result.documents.mapNotNull { doc ->
+                    // Mapeo manual para evitar problemas con la deserialización automática
+                    Capsule(
+                        id = doc.id,
+                        title = doc.getString("title") ?: "",
+                        text = doc.getString("text") ?: "",
+                        createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
+                        openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
+                        status = doc.getString("status") ?: ""
+                    )
+                }
+                _capsules.value = capsuleList
+            } catch (e: Exception) {
+                _error.value = "Error al cargar las cápsulas: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun saveCapsule(title: String, text: String, openDateTime: LocalDateTime, imageUris: List<Uri>) {
         val userId = auth.currentUser?.uid
@@ -62,6 +105,7 @@ class CapsuleViewModel : ViewModel() {
                 )
 
                 db.collection("capsules").add(capsuleData).await()
+                loadCapsules() // Recargamos las cápsulas
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
