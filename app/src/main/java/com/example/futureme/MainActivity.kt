@@ -5,26 +5,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
+import com.example.futureme.ui.capsule.CapsuleViewModel
+import com.example.futureme.ui.capsule.CreateCapsuleScreen
+import com.example.futureme.ui.capsule.CapsuleDetailScreen
+import com.example.futureme.ui.home.HomeScreen
+import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.FUTUREMETheme
 
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val capsuleViewModel: CapsuleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,54 +34,58 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FUTUREMETheme {
-                val user by authViewModel.user.collectAsState()
-
-                if (user == null) {
-                    LoginScreen(authViewModel = authViewModel)
-                } else {
-                    HomeScreen(authViewModel = authViewModel)
-                }
+                AppNavHost(authViewModel = authViewModel, capsuleViewModel = capsuleViewModel)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(authViewModel: AuthViewModel) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Mis Cápsulas") },
-                actions = {
-                    // Botón para cerrar sesión
-                    IconButton(onClick = { authViewModel.signOut() }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
-                    }
+fun AppNavHost(
+    authViewModel: AuthViewModel, 
+    capsuleViewModel: CapsuleViewModel
+) {
+    val navController = rememberNavController()
+    val user by authViewModel.user.collectAsState()
+
+    LaunchedEffect(user) {
+        if (user != null) {
+            navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } }
+        } else {
+            navController.navigate(Screen.Login.route) { popUpTo(Screen.Home.route) { inclusive = true } }
+        }
+    }
+
+    NavHost(navController = navController, startDestination = Screen.Login.route) {
+        composable(Screen.Login.route) {
+            LoginScreen(authViewModel = authViewModel)
+        }
+        composable(Screen.Home.route) {
+            HomeScreen(
+                authViewModel = authViewModel,
+                capsuleViewModel = capsuleViewModel,
+                onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) },
+                onCapsuleClick = { capsuleId -> 
+                    navController.navigate(Screen.CapsuleDetail.createRoute(capsuleId))
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Navegar a la pantalla de crear cápsula */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Crear nueva cápsula")
-            }
         }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+        composable(Screen.CreateCapsule.route) {
+            CreateCapsuleScreen(
+                capsuleViewModel = capsuleViewModel, 
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.CapsuleDetail.route,
+            arguments = listOf(navArgument("capsuleId") { type = NavType.StringType })
         ) {
-            Text(text = "Aquí irá la lista de cápsulas")
+            val capsuleId = it.arguments?.getString("capsuleId")
+            CapsuleDetailScreen(
+                capsuleId = capsuleId,
+                viewModel = capsuleViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Home Screen Preview")
-@Composable
-fun HomeScreenPreview() {
-    FUTUREMETheme {
-        HomeScreen(authViewModel = AuthViewModel())
     }
 }
