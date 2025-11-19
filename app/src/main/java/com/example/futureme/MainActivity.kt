@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,15 +19,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.futureme.data.model.Capsule
 import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
+import com.example.futureme.ui.capsule.CapsuleDetailScreen
 import com.example.futureme.ui.capsule.CapsuleViewModel
 import com.example.futureme.ui.capsule.CreateCapsuleScreen
 import com.example.futureme.ui.navigation.Screen
@@ -35,7 +39,6 @@ import java.text.DateFormat
 
 class MainActivity : ComponentActivity() {
 
-    // Obtenemos las instancias de nuestros ViewModels
     private val authViewModel: AuthViewModel by viewModels()
     private val capsuleViewModel: CapsuleViewModel by viewModels()
 
@@ -45,7 +48,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FUTUREMETheme {
-                // Pasamos ambos ViewModels al NavHost
                 AppNavHost(authViewModel = authViewModel, capsuleViewModel = capsuleViewModel)
             }
         }
@@ -62,13 +64,9 @@ fun AppNavHost(
 
     LaunchedEffect(user) {
         if (user != null) {
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Login.route) { inclusive = true }
-            }
+            navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } }
         } else {
-            navController.navigate(Screen.Login.route) {
-                popUpTo(Screen.Home.route) { inclusive = true }
-            }
+            navController.navigate(Screen.Login.route) { popUpTo(Screen.Home.route) { inclusive = true } }
         }
     }
 
@@ -80,12 +78,28 @@ fun AppNavHost(
             HomeScreen(
                 authViewModel = authViewModel,
                 capsuleViewModel = capsuleViewModel,
-                onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) }
+                onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) },
+                onCapsuleClick = { capsule ->
+                    if (capsule.isOpenable()) {
+                        navController.navigate(Screen.CapsuleDetail.createRoute(capsule.id))
+                    }
+                }
             )
         }
         composable(Screen.CreateCapsule.route) {
             CreateCapsuleScreen(
                 capsuleViewModel = capsuleViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.CapsuleDetail.route,
+            arguments = listOf(navArgument("capsuleId") { type = NavType.StringType })
+        ) {
+            val capsuleId = it.arguments?.getString("capsuleId") ?: return@composable
+            CapsuleDetailScreen(
+                capsuleViewModel = capsuleViewModel,
+                capsuleId = capsuleId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -97,7 +111,8 @@ fun AppNavHost(
 fun HomeScreen(
     authViewModel: AuthViewModel,
     capsuleViewModel: CapsuleViewModel,
-    onNavigateToCreate: () -> Unit
+    onNavigateToCreate: () -> Unit,
+    onCapsuleClick: (Capsule) -> Unit
 ) {
     val capsules by capsuleViewModel.capsules.collectAsState()
     val isLoading by capsuleViewModel.isLoading.collectAsState()
@@ -125,7 +140,7 @@ fun HomeScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            if (isLoading && capsules.isEmpty()) { // Show loader only on initial load
+            if (isLoading && capsules.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -136,16 +151,13 @@ fun HomeScreen(
             }
 
             if (capsules.isEmpty() && !isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "Aún no tienes cápsulas. ¡Crea una!")
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(capsules) { capsule ->
-                        CapsuleItem(capsule = capsule)
+                        CapsuleItem(capsule = capsule, onClick = { onCapsuleClick(capsule) })
                     }
                 }
             }
@@ -154,11 +166,14 @@ fun HomeScreen(
 }
 
 @Composable
-fun CapsuleItem(capsule: Capsule) {
+fun CapsuleItem(capsule: Capsule, onClick: () -> Unit) {
+    val isOpenable = capsule.isOpenable()
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(enabled = isOpenable, onClick = onClick)
+            .alpha(if (isOpenable) 1f else 0.6f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -173,9 +188,9 @@ fun CapsuleItem(capsule: Capsule) {
             Spacer(modifier = Modifier.height(8.dp))
             val openDate = capsule.openDate.toDate()
             Text(
-                text = "Se abre el: ${DateFormat.getDateInstance(DateFormat.MEDIUM).format(openDate)}",
+                text = if (isOpenable) "¡Ya se puede abrir!" else "Se abre el: ${DateFormat.getDateInstance(DateFormat.MEDIUM).format(openDate)}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (isOpenable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

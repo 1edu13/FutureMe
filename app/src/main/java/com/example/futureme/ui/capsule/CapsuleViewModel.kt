@@ -32,6 +32,9 @@ class CapsuleViewModel : ViewModel() {
     private val _capsules = MutableStateFlow<List<Capsule>>(emptyList())
     val capsules: StateFlow<List<Capsule>> = _capsules
 
+    private val _selectedCapsule = MutableStateFlow<Capsule?>(null)
+    val selectedCapsule: StateFlow<Capsule?> = _selectedCapsule
+
     init {
         loadCapsules()
     }
@@ -54,6 +57,7 @@ class CapsuleViewModel : ViewModel() {
                 val capsuleList = result.documents.mapNotNull { doc ->
                     Capsule(
                         id = doc.id,
+                        creatorId = doc.getString("creatorId") ?: "",
                         title = doc.getString("title") ?: "",
                         text = doc.getString("text") ?: "",
                         createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
@@ -68,6 +72,44 @@ class CapsuleViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun loadCapsuleById(capsuleId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val doc = db.collection("capsules").document(capsuleId).get().await()
+                if (doc.exists()) {
+                    val capsule = Capsule(
+                        id = doc.id,
+                        creatorId = doc.getString("creatorId") ?: "",
+                        title = doc.getString("title") ?: "",
+                        text = doc.getString("text") ?: "",
+                        createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
+                        openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
+                        status = doc.getString("status") ?: ""
+                    )
+                    // Check if the user is authorized to see it
+                    if (capsule.creatorId == auth.currentUser?.uid) {
+                        _selectedCapsule.value = capsule
+                    } else {
+                         _error.value = "No tienes permiso para ver esta cápsula."
+                    }
+                } else {
+                    _error.value = "La cápsula no existe."
+                }
+            } catch (e: Exception) {
+                Log.e("CapsuleViewModel", "Error loading capsule by ID", e)
+                _error.value = "Error al cargar la cápsula: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    fun clearSelectedCapsule() {
+        _selectedCapsule.value = null
     }
 
     fun saveCapsule(title: String, text: String, openDateTime: Calendar) {
