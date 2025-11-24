@@ -1,6 +1,8 @@
 package com.example.futureme.ui.capsule
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import java.text.SimpleDateFormat
@@ -44,8 +47,8 @@ fun CreateCapsuleScreen(
     CreateCapsuleScreenContent(
         isLoading = isLoading,
         error = error,
-        onSave = { title, text, openDateTime ->
-            capsuleViewModel.saveCapsule(title, text, openDateTime)
+        onSave = { title, text, openDateTime, imageUris, context ->
+            capsuleViewModel.saveCapsule(title, text, openDateTime, imageUris, context)
         },
         onNavigateBack = onNavigateBack
     )
@@ -56,9 +59,11 @@ fun CreateCapsuleScreen(
 fun CreateCapsuleScreenContent(
     isLoading: Boolean,
     error: String?,
-    onSave: (String, String, Calendar) -> Unit,
+    onSave: (String, String, Calendar, List<Uri>, Context) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     var openDate by remember { mutableStateOf<Calendar?>(null) }
@@ -66,7 +71,12 @@ fun CreateCapsuleScreenContent(
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(),
-        onResult = { uris -> selectedImageUris = uris }
+        onResult = { uris ->
+            uris.forEach { uri ->
+                Log.d("PhotoPicker", "URI seleccionada: $uri")
+            }
+            selectedImageUris = uris
+        }
     )
 
     var showDatePicker by remember { mutableStateOf(false) }
@@ -74,7 +84,9 @@ fun CreateCapsuleScreenContent(
 
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState(is24Hour = true)
+
     val dateTimeFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
+
     val openDateText = remember(openDate) {
         openDate?.let { dateTimeFormatter.format(it.time) } ?: ""
     }
@@ -83,9 +95,7 @@ fun CreateCapsuleScreenContent(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     LaunchedEffect(isPressed) {
-        if (isPressed) {
-            showDatePicker = true
-        }
+        if (isPressed) showDatePicker = true
     }
 
     Scaffold(
@@ -100,36 +110,55 @@ fun CreateCapsuleScreenContent(
             )
         }
     ) { innerPadding ->
+
         Column(
-            modifier = Modifier.padding(innerPadding).padding(16.dp).fillMaxSize(),
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)
+                .fillMaxSize(),
         ) {
             OutlinedTextField(
-                value = title, onValueChange = { title = it }, label = { Text("Título") },
-                modifier = Modifier.fillMaxWidth(), enabled = !isLoading
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = openDateText, onValueChange = {}, label = { Text("Fecha y hora de apertura") },
-                readOnly = true, interactionSource = interactionSource,
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Título") },
                 modifier = Modifier.fillMaxWidth(),
-                trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 enabled = !isLoading
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
-                value = text, onValueChange = { text = it }, label = { Text("Contenido de tu cápsula") },
-                modifier = Modifier.fillMaxWidth().weight(1f), enabled = !isLoading, minLines = 5
+                value = openDateText,
+                onValueChange = {},
+                label = { Text("Fecha y hora de apertura") },
+                readOnly = true,
+                interactionSource = interactionSource,
+                trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Contenido de tu cápsula") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                minLines = 5,
+                enabled = !isLoading
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedButton(
-                onClick = { 
+                onClick = {
                     photoPickerLauncher.launch(
-                        PickVisualMediaRequest.Builder()
-                            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            .build()
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
-                 },
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
             ) {
@@ -137,13 +166,17 @@ fun CreateCapsuleScreenContent(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Adjuntar Imágenes")
             }
-            
+
             if (selectedImageUris.isNotEmpty()) {
                 LazyRow(modifier = Modifier.padding(top = 8.dp)) {
                     items(selectedImageUris) { uri ->
                         AsyncImage(
-                            model = uri, contentDescription = null,
-                            modifier = Modifier.size(80.dp).padding(end = 4.dp), contentScale = ContentScale.Crop
+                            model = uri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(end = 4.dp),
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
@@ -160,13 +193,16 @@ fun CreateCapsuleScreenContent(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             } else {
                 Button(
-                    onClick = { 
+                    onClick = {
                         openDate?.let {
-                            onSave(title, text, it)
+                            onSave(title, text, it, selectedImageUris, context)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && title.isNotBlank() && text.isNotBlank() && openDate != null
+                    enabled = !isLoading &&
+                            title.isNotBlank() &&
+                            text.isNotBlank() &&
+                            openDate != null
                 ) {
                     Text("Guardar Cápsula")
                 }
@@ -178,24 +214,32 @@ fun CreateCapsuleScreenContent(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { 
-                    datePickerState.selectedDateMillis?.let { utcMillis ->
-                        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                        utcCal.timeInMillis = utcMillis
-                        val year = utcCal.get(Calendar.YEAR)
-                        val month = utcCal.get(Calendar.MONTH)
-                        val day = utcCal.get(Calendar.DAY_OF_MONTH)
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                            utcCal.timeInMillis = utcMillis
 
-                        val localCal = Calendar.getInstance()
-                        localCal.clear()
-                        localCal.set(year, month, day)
-                        openDate = localCal
+                            val year = utcCal.get(Calendar.YEAR)
+                            val month = utcCal.get(Calendar.MONTH)
+                            val day = utcCal.get(Calendar.DAY_OF_MONTH)
+
+                            val localCal = Calendar.getInstance()
+                            localCal.clear()
+                            localCal.set(year, month, day)
+
+                            openDate = localCal
+                        }
+                        showDatePicker = false
+                        showTimePicker = true
                     }
-                    showDatePicker = false
-                    showTimePicker = true 
-                }) { Text("Aceptar") }
+                ) { Text("Aceptar") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") } }
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
         ) {
             DatePicker(state = datePickerState)
         }
@@ -205,21 +249,34 @@ fun CreateCapsuleScreenContent(
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
             title = { Text("Selecciona la hora") },
-            text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TimePicker(state = timePickerState) } },
-            confirmButton = {
-                TextButton(onClick = {
-                    val calendarToUpdate = openDate ?: Calendar.getInstance()
-                    calendarToUpdate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                    calendarToUpdate.set(Calendar.MINUTE, timePickerState.minute)
-                    
-                    val finalCalendar = Calendar.getInstance()
-                    finalCalendar.time = calendarToUpdate.time
-                    openDate = finalCalendar
-                    
-                    showTimePicker = false
-                }) { Text("Aceptar") }
+            text = {
+                Box(
+                    Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TimePicker(state = timePickerState)
+                }
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancelar") } }
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val calendarToUpdate = openDate ?: Calendar.getInstance()
+                        calendarToUpdate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                        calendarToUpdate.set(Calendar.MINUTE, timePickerState.minute)
+
+                        val finalCalendar = Calendar.getInstance()
+                        finalCalendar.time = calendarToUpdate.time
+
+                        openDate = finalCalendar
+                        showTimePicker = false
+                    }
+                ) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 }

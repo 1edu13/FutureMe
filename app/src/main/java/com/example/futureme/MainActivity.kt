@@ -118,6 +118,12 @@ fun HomeScreen(
     val isLoading by capsuleViewModel.isLoading.collectAsState()
     val error by capsuleViewModel.error.collectAsState()
 
+    // ¡AQUÍ ESTÁ LA MAGIA!
+    // Cada vez que se entra en esta pantalla, recargamos las cápsulas.
+    LaunchedEffect(Unit) {
+        capsuleViewModel.loadCapsules()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

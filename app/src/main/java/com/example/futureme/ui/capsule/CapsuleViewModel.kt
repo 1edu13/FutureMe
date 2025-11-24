@@ -1,5 +1,7 @@
 package com.example.futureme.ui.capsule
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,16 +11,19 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import java.util.UUID
 
 class CapsuleViewModel : ViewModel() {
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+    private val storage = Firebase.storage
 
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
@@ -50,24 +55,29 @@ class CapsuleViewModel : ViewModel() {
             _isLoading.value = true
             try {
                 val result = db.collection("capsules")
-                    .whereEqualTo("creatorId", userId)
+                    .whereArrayContains("participantIds", userId)
                     .get()
                     .await()
 
                 val capsuleList = result.documents.mapNotNull { doc ->
-                    Capsule(
-                        id = doc.id,
-                        creatorId = doc.getString("creatorId") ?: "",
-                        title = doc.getString("title") ?: "",
-                        text = doc.getString("text") ?: "",
-                        createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
-                        openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
-                        status = doc.getString("status") ?: ""
-                    )
+                    try {
+                        Capsule(
+                            id = doc.id,
+                            creatorId = doc.getString("creatorId") ?: "",
+                            title = doc.getString("title") ?: "",
+                            text = doc.getString("text") ?: "",
+                            createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
+                            openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
+                            status = doc.getString("status") ?: "",
+                            images = doc.get("images") as? List<String> ?: emptyList()
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
                 _capsules.value = capsuleList
             } catch (e: Exception) {
-                _error.value = "Error al cargar las cápsulas: ${e.localizedMessage}"
+                Log.e("CapsuleViewModel", "Error cargando cápsulas", e)
             } finally {
                 _isLoading.value = false
             }
@@ -88,40 +98,66 @@ class CapsuleViewModel : ViewModel() {
                         text = doc.getString("text") ?: "",
                         createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
                         openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
-                        status = doc.getString("status") ?: ""
+                        status = doc.getString("status") ?: "",
+                        images = doc.get("images") as? List<String> ?: emptyList()
                     )
-                    // Check if the user is authorized to see it
-                    if (capsule.creatorId == auth.currentUser?.uid) {
-                        _selectedCapsule.value = capsule
-                    } else {
-                         _error.value = "No tienes permiso para ver esta cápsula."
-                    }
+                    _selectedCapsule.value = capsule
                 } else {
                     _error.value = "La cápsula no existe."
                 }
             } catch (e: Exception) {
                 Log.e("CapsuleViewModel", "Error loading capsule by ID", e)
-                _error.value = "Error al cargar la cápsula: ${e.localizedMessage}"
+                _error.value = "Error al cargar la cápsula."
             } finally {
                 _isLoading.value = false
             }
         }
     }
-    
-    fun clearSelectedCapsule() {
-        _selectedCapsule.value = null
-    }
 
-    fun saveCapsule(title: String, text: String, openDateTime: Calendar) {
-        val userId = auth.currentUser?.uid
+    private suspend fun uploadImages(context: Context, uris: List<Uri>): List<String> {
+        val urls = mutableListOf<String>()
+        val resolver = context.contentResolver
+        val userId = auth.currentUser?.uid ?: "unknown"
 
-        if (userId == null) {
-            _error.value = "Error: Usuario no autenticado."
-            return
+        for (uri in uris) {
+            try {
+                Log.d("Upload", "Procesando URI: $uri")
+
+                val inputStream = resolver.openInputStream(uri)
+                    ?: throw Exception("No se pudo abrir InputStream para $uri")
+
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+
+                // Estructura: capsules/USER_ID/RANDOM_ID.jpg
+                val fileName = "capsules/$userId/${UUID.randomUUID()}.jpg"
+                val ref = storage.reference.child(fileName)
+
+                ref.putBytes(bytes).await()
+                val downloadUrl = ref.downloadUrl.await().toString()
+                urls.add(downloadUrl)
+
+                Log.d("Upload", "Imagen subida correctamente: $downloadUrl")
+
+            } catch (e: Exception) {
+                Log.e("Upload", "Error al subir imagen: ${e.localizedMessage}")
+                throw e // Re-anzamos para que saveCapsule lo capture
+            }
         }
 
-        if (title.isBlank() || text.isBlank()) {
-            _error.value = "El título y el texto no pueden estar vacíos."
+        return urls
+    }
+
+    fun saveCapsule(
+        title: String,
+        text: String,
+        openDateTime: Calendar,
+        imageUris: List<Uri>,
+        context: Context
+    ) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _error.value = "Error: Usuario no autenticado."
             return
         }
 
@@ -131,27 +167,38 @@ class CapsuleViewModel : ViewModel() {
             _saveSuccess.value = false
 
             try {
-                val openTimestamp = Timestamp(openDateTime.time)
+                // 1. Subir imágenes a Storage y obtener URLs
+                val imageUrls = uploadImages(context, imageUris)
 
+                // 2. Preparar datos de la cápsula
                 val capsuleData = hashMapOf(
                     "creatorId" to userId,
+                    "ownerId" to userId,
                     "title" to title,
                     "text" to text,
                     "createdAt" to FieldValue.serverTimestamp(),
-                    "openDate" to openTimestamp,
-                    "status" to "PENDING"
+                    "openDate" to Timestamp(openDateTime.time),
+                    "status" to "scheduled",
+                    "images" to imageUrls, // Guardamos las URLs, no el Base64
+                    "participantIds" to listOf(userId)
                 )
 
+                // 3. Guardar en Firestore
                 db.collection("capsules").add(capsuleData).await()
+                
                 loadCapsules()
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
-                Log.e("CapsuleViewModel", "Error al guardar la cápsula", e)
-                _error.value = "Error al guardar: ${e.localizedMessage}"
+                Log.e("CapsuleViewModel", "Error al guardar cápsula", e)
+                _error.value = "Error: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearSelectedCapsule() {
+        _selectedCapsule.value = null
     }
 }
