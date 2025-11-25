@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.futureme.data.model.Capsule
+import com.example.futureme.data.repository.CapsuleRepository
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
@@ -20,6 +21,8 @@ import java.util.Calendar
 import java.util.UUID
 
 class CapsuleViewModel : ViewModel() {
+
+    private val capsuleRepository = CapsuleRepository()
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -54,65 +57,34 @@ class CapsuleViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val result = db.collection("capsules")
-                    .whereArrayContains("participantIds", userId)
-                    .get()
-                    .await()
-
-                val capsuleList = result.documents.mapNotNull { doc ->
-                    try {
-                        Capsule(
-                            id = doc.id,
-                            creatorId = doc.getString("creatorId") ?: "",
-                            title = doc.getString("title") ?: "",
-                            text = doc.getString("text") ?: "",
-                            createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
-                            openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
-                            status = doc.getString("status") ?: "",
-                            images = doc.get("images") as? List<String> ?: emptyList()
-                        )
-                    } catch (e: Exception) {
-                        null
-                    }
-                }
+                val capsuleList = capsuleRepository.getCapsules(userId)
                 _capsules.value = capsuleList
             } catch (e: Exception) {
-                Log.e("CapsuleViewModel", "Error cargando cápsulas", e)
+                _error.value = e.localizedMessage
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+
     fun loadCapsuleById(capsuleId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
             try {
-                val doc = db.collection("capsules").document(capsuleId).get().await()
-                if (doc.exists()) {
-                    val capsule = Capsule(
-                        id = doc.id,
-                        creatorId = doc.getString("creatorId") ?: "",
-                        title = doc.getString("title") ?: "",
-                        text = doc.getString("text") ?: "",
-                        createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
-                        openDate = doc.getTimestamp("openDate") ?: Timestamp.now(),
-                        status = doc.getString("status") ?: "",
-                        images = doc.get("images") as? List<String> ?: emptyList()
-                    )
-                    _selectedCapsule.value = capsule
-                } else {
-                    _error.value = "La cápsula no existe."
-                }
+                _selectedCapsule.value = capsuleRepository.getCapsuleById(capsuleId)
+                    ?: run {
+                        _error.value = "La cápsula no existe."
+                        null
+                    }
             } catch (e: Exception) {
-                Log.e("CapsuleViewModel", "Error loading capsule by ID", e)
                 _error.value = "Error al cargar la cápsula."
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
     private suspend fun uploadImages(context: Context, uris: List<Uri>): List<String> {
         val urls = mutableListOf<String>()
