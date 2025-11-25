@@ -1,4 +1,8 @@
 package com.example.futureme.data.repository
 
-class StorageRepository {
+import com.example.futureme.data.firebase.StorageDataSource
+
+class StorageRepository(
+    private val storageDataSource: StorageDataSource = StorageDataSource()
+) {
 }
