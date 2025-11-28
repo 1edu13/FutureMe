@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,7 +35,7 @@ import com.example.futureme.ui.capsule.CapsuleDetailScreen
 import com.example.futureme.ui.capsule.CapsuleViewModel
 import com.example.futureme.ui.capsule.CreateCapsuleScreen
 import com.example.futureme.ui.navigation.Screen
-import com.example.futureme.ui.theme.FUTUREMETheme
+import com.example.futureme.ui.theme.FutureMeTheme
 import java.text.DateFormat
 
 class MainActivity : ComponentActivity() {
@@ -47,7 +48,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            FUTUREMETheme {
+            FutureMeTheme {
                 AppNavHost(authViewModel = authViewModel, capsuleViewModel = capsuleViewModel)
             }
         }
@@ -63,10 +64,12 @@ fun AppNavHost(
     val user by authViewModel.user.collectAsState()
 
     LaunchedEffect(user) {
-        if (user != null) {
-            navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } }
-        } else {
-            navController.navigate(Screen.Login.route) { popUpTo(Screen.Home.route) { inclusive = true } }
+        val newRoute = if (user != null) Screen.Home.route else Screen.Login.route
+        navController.navigate(newRoute) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                inclusive = true
+            }
+            launchSingleTop = true
         }
     }
 
@@ -118,8 +121,6 @@ fun HomeScreen(
     val isLoading by capsuleViewModel.isLoading.collectAsState()
     val error by capsuleViewModel.error.collectAsState()
 
-    // ¡AQUÍ ESTÁ LA MAGIA!
-    // Cada vez que se entra en esta pantalla, recargamos las cápsulas.
     LaunchedEffect(Unit) {
         capsuleViewModel.loadCapsules()
     }
@@ -130,7 +131,7 @@ fun HomeScreen(
                 title = { Text("Mis Cápsulas") },
                 actions = {
                     IconButton(onClick = { authViewModel.signOut() }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
                     }
                 }
             )
@@ -162,8 +163,8 @@ fun HomeScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(capsules) { capsule ->
-                        CapsuleItem(capsule = capsule, onClick = { onCapsuleClick(capsule) })
+                    items(capsules) {
+                        capsule -> CapsuleItem(capsule = capsule, onClick = { onCapsuleClick(capsule) })
                     }
                 }
             }

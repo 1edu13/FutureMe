@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.futureme.ui.theme.FUTUREMETheme
+import com.example.futureme.ui.theme.FutureMeTheme
 
 // Enum para definir el modo de la pantalla
 enum class AuthMode {
@@ -142,7 +142,7 @@ fun LoginScreenContent(
 @Preview(showBackground = true, name = "Login Screen Preview")
 @Composable
 fun LoginScreenContentPreview() {
-    FUTUREMETheme {
+    FutureMeTheme {
         LoginScreenContent(
             isLoading = false,
             error = null,
@@ -155,7 +155,7 @@ fun LoginScreenContentPreview() {
 @Preview(showBackground = true, name = "Login Screen Loading Preview")
 @Composable
 fun LoginScreenContentLoadingPreview() {
-    FUTUREMETheme {
+    FutureMeTheme {
         LoginScreenContent(
             isLoading = true, // <-- ¡Ahora podemos previsualizar el estado de carga!
             error = null,
@@ -168,7 +168,7 @@ fun LoginScreenContentLoadingPreview() {
 @Preview(showBackground = true, name = "Login Screen Error Preview")
 @Composable
 fun LoginScreenContentErrorPreview() {
-    FUTUREMETheme {
+    FutureMeTheme {
         LoginScreenContent(
             isLoading = false,
             error = "Email o contraseña incorrectos.", // <-- ¡Y el estado de error!
