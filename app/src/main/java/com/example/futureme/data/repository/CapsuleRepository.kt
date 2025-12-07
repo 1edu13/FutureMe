@@ -29,14 +29,23 @@ class CapsuleRepository(
             "creatorId" to userId,
             "ownerId" to userId,
             "title" to title,
-            "text" to text,
             "createdAt" to Timestamp.now(),
             "openDate" to Timestamp(openDateTime.time),
             "status" to "scheduled",
-            "images" to imageUrls,
-            "participantIds" to listOf(userId)
+            "participantIds" to listOf(userId),
+            "contributions" to mapOf(
+                userId to mapOf(
+                    "text" to text,
+                    "images" to imageUrls
+                )
+            )
         )
 
         dataSource.saveCapsule(capsuleData)
     }
+
+    suspend fun joinCapsule(capsuleId: String, userId: String) {
+        dataSource.joinCapsule(capsuleId, userId)
+    }
+
 }

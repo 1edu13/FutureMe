@@ -4,6 +4,7 @@ import com.example.futureme.data.model.Capsule
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.FieldValue
 
 class CapsuleDataSource(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -54,5 +55,24 @@ class CapsuleDataSource(
 
     suspend fun saveCapsule(capsuleData: Map<String, Any>) {
         db.collection("capsules").add(capsuleData).await()
+    }
+
+    suspend fun joinCapsule(capsuleId: String, userId: String) {
+        // Contribution vacía para el nuevo participante
+        val emptyContribution = mapOf(
+            "text" to "",
+            "images" to emptyList<String>()
+        )
+
+        // Actualizamos participantIds y creamos su contribution
+        db.collection("capsules")
+            .document(capsuleId)
+            .update(
+                mapOf(
+                    "participantIds" to FieldValue.arrayUnion(userId),
+                    "contributions.$userId" to emptyContribution
+                )
+            )
+            .await()
     }
 }

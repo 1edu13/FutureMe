@@ -123,4 +123,31 @@ class CapsuleViewModel : ViewModel() {
     fun clearSelectedCapsule() {
         _selectedCapsule.value = null
     }
+
+    fun joinCapsule(code: String) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _error.value = "Usuario no autenticado."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                capsuleRepository.joinCapsule(code, userId)
+
+                // Volvemos a cargar las cápsulas del usuario
+                loadCapsules()
+
+                _saveSuccess.value = true
+            } catch (e: Exception) {
+                _error.value = "Código inválido o cápsula no encontrada."
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 }

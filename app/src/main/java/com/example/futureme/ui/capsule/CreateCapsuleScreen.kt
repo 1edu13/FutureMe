@@ -68,6 +68,7 @@ fun CreateCapsuleScreenContent(
     var text by remember { mutableStateOf("") }
     var openDate by remember { mutableStateOf<Calendar?>(null) }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var isShared by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(),
@@ -126,6 +127,47 @@ fun CreateCapsuleScreenContent(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Switch(
+                    checked = isShared,
+                    onCheckedChange = { isShared = it },
+                    enabled = !isLoading
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cápsula compartida")
+            }
+
+            if (isShared) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Código de invitación",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Se generará automáticamente al guardar la cápsula.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
 
             OutlinedTextField(
                 value = openDateText,
