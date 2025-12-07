@@ -13,10 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -31,9 +28,7 @@ import androidx.navigation.navArgument
 import com.example.futureme.data.model.Capsule
 import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
-import com.example.futureme.ui.capsule.CapsuleDetailScreen
-import com.example.futureme.ui.capsule.CapsuleViewModel
-import com.example.futureme.ui.capsule.CreateCapsuleScreen
+import com.example.futureme.ui.capsule.*
 import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.FutureMeTheme
 import java.text.DateFormat
@@ -63,6 +58,7 @@ fun AppNavHost(
     val navController = rememberNavController()
     val user by authViewModel.user.collectAsState()
 
+    // Cambio automático entre Login y Home tras login/logout
     LaunchedEffect(user) {
         val newRoute = if (user != null) Screen.Home.route else Screen.Login.route
         navController.navigate(newRoute) {
@@ -74,14 +70,19 @@ fun AppNavHost(
     }
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
+
+        // LOGIN
         composable(Screen.Login.route) {
             LoginScreen(authViewModel = authViewModel)
         }
+
+        // HOME
         composable(Screen.Home.route) {
             HomeScreen(
                 authViewModel = authViewModel,
                 capsuleViewModel = capsuleViewModel,
                 onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) },
+                onJoinCapsule = { navController.navigate(Screen.JoinCapsule.route) },
                 onCapsuleClick = { capsule ->
                     if (capsule.isOpenable()) {
                         navController.navigate(Screen.CapsuleDetail.createRoute(capsule.id))
@@ -89,12 +90,25 @@ fun AppNavHost(
                 }
             )
         }
+
+        // CREAR CÁPSULA
         composable(Screen.CreateCapsule.route) {
             CreateCapsuleScreen(
                 capsuleViewModel = capsuleViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        // UNIRSE A CÁPSULA (NUEVO)
+        composable(Screen.JoinCapsule.route) {
+            JoinCapsuleScreen(
+                capsuleViewModel = capsuleViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onJoined = { navController.navigate(Screen.Home.route) }
+            )
+        }
+
+        // VER DETALLE DE CÁPSULA
         composable(
             route = Screen.CapsuleDetail.route,
             arguments = listOf(navArgument("capsuleId") { type = NavType.StringType })
@@ -115,6 +129,7 @@ fun HomeScreen(
     authViewModel: AuthViewModel,
     capsuleViewModel: CapsuleViewModel,
     onNavigateToCreate: () -> Unit,
+    onJoinCapsule: () -> Unit,         // <-- AÑADIDO
     onCapsuleClick: (Capsule) -> Unit
 ) {
     val capsules by capsuleViewModel.capsules.collectAsState()
@@ -147,6 +162,17 @@ fun HomeScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+
+            // 🔥 NUEVO BOTÓN: Unirse a cápsula
+            Button(
+                onClick = onJoinCapsule,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Unirse a cápsula")
+            }
+
             if (isLoading && capsules.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -163,8 +189,8 @@ fun HomeScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(capsules) {
-                        capsule -> CapsuleItem(capsule = capsule, onClick = { onCapsuleClick(capsule) })
+                    items(capsules) { capsule ->
+                        CapsuleItem(capsule = capsule, onClick = { onCapsuleClick(capsule) })
                     }
                 }
             }
