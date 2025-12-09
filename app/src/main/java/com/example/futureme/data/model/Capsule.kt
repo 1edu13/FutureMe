@@ -10,10 +10,19 @@ data class Capsule(
     val text: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val openDate: Timestamp = Timestamp.now(),
+    // Nueva fecha límite para dejar de aceptar contribuciones
+    val editDeadline: Timestamp = Timestamp.now(), 
     val status: String = "",
-    val images: List<String> = emptyList() // ← AÑADIDO
+    val images: List<String> = emptyList(),
+    val contributions: Map<String, Map<String, Any>> = emptyMap()
 ) {
+    // ¿Se puede ver el contenido?
     fun isOpenable(): Boolean {
         return Date() >= openDate.toDate()
+    }
+
+    // ¿Se puede editar/añadir contenido? (Solo si NO ha pasado la fecha límite)
+    fun isEditable(): Boolean {
+        return Date() < editDeadline.toDate()
     }
 }

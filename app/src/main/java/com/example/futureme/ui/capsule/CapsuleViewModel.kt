@@ -2,6 +2,7 @@ package com.example.futureme.ui.capsule
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.futureme.data.model.Capsule
@@ -51,6 +52,7 @@ class CapsuleViewModel : ViewModel() {
                 val capsuleList = capsuleRepository.getCapsules(userId)
                 _capsules.value = capsuleList
             } catch (e: Exception) {
+                Log.e("CapsuleViewModel", "Error loading capsules", e)
                 _error.value = e.localizedMessage
             } finally {
                 _isLoading.value = false
@@ -69,7 +71,8 @@ class CapsuleViewModel : ViewModel() {
                         null
                     }
             } catch (e: Exception) {
-                _error.value = "Error al cargar la cápsula."
+                Log.e("CapsuleViewModel", "Error loading capsule details", e)
+                _error.value = "Error al cargar la cápsula: ${e.localizedMessage}"
             } finally {
                 _isLoading.value = false
             }
@@ -113,12 +116,54 @@ class CapsuleViewModel : ViewModel() {
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
+                Log.e("CapsuleViewModel", "Error saving capsule", e)
                 _error.value = "Error: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
         }
     }
+    
+    fun updateContribution(
+        capsuleId: String,
+        text: String,
+        imageUris: List<Uri>,
+        context: Context
+    ) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _error.value = "Error: Usuario no autenticado."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            _saveSuccess.value = false
+
+            try {
+                val imageUrls = storageRepository.uploadImages(context, userId, imageUris)
+
+                capsuleRepository.updateContribution(
+                    capsuleId = capsuleId,
+                    userId = userId,
+                    text = text,
+                    imageUrls = imageUrls
+                )
+
+                // Recargar detalles
+                loadCapsuleById(capsuleId)
+                _saveSuccess.value = true
+
+            } catch (e: Exception) {
+                Log.e("CapsuleViewModel", "Error updating contribution", e)
+                _error.value = "Error: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 
     fun clearSelectedCapsule() {
         _selectedCapsule.value = null
@@ -136,14 +181,17 @@ class CapsuleViewModel : ViewModel() {
             _error.value = null
 
             try {
-                capsuleRepository.joinCapsule(code, userId)
+                // Limpiamos espacios en blanco por si acaso al copiar/pegar
+                capsuleRepository.joinCapsule(code.trim(), userId)
 
                 // Volvemos a cargar las cápsulas del usuario
                 loadCapsules()
 
                 _saveSuccess.value = true
             } catch (e: Exception) {
-                _error.value = "Código inválido o cápsula no encontrada."
+                Log.e("CapsuleViewModel", "Error joining capsule", e)
+                // Mostramos el error real para facilitar el debug
+                _error.value = "Error al unirse: ${e.localizedMessage ?: "Error desconocido"}"
             } finally {
                 _isLoading.value = false
             }
