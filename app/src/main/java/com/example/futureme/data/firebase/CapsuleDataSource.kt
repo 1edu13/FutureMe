@@ -53,9 +53,13 @@ class CapsuleDataSource(
         }
     }
 
-    suspend fun saveCapsule(capsuleData: Map<String, Any>) {
-        db.collection("capsules").add(capsuleData).await()
+    suspend fun saveCapsule(capsuleId: String, capsuleData: Map<String, Any>) {
+        db.collection("capsules")
+            .document(capsuleId)
+            .set(capsuleData)
+            .await()
     }
+
 
     suspend fun joinCapsule(capsuleId: String, userId: String) {
         // Contribution vacía para el nuevo participante

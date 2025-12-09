@@ -25,6 +25,8 @@ class CapsuleRepository(
         imageUrls: List<String>
     ) {
 
+        val capsuleId = java.util.UUID.randomUUID().toString()
+
         val capsuleData = hashMapOf(
             "creatorId" to userId,
             "ownerId" to userId,
@@ -36,16 +38,12 @@ class CapsuleRepository(
             "contributions" to mapOf(
                 userId to mapOf(
                     "text" to text,
-                    "images" to imageUrls
+                    "images" to imageUrls.ifEmpty { emptyList<String>() }  // ❤️ IMPORTANTE
                 )
             )
         )
 
-        dataSource.saveCapsule(capsuleData)
-    }
-
-    suspend fun joinCapsule(capsuleId: String, userId: String) {
-        dataSource.joinCapsule(capsuleId, userId)
+        dataSource.saveCapsule(capsuleId, capsuleData)
     }
 
 }
