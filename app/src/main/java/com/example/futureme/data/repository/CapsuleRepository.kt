@@ -38,12 +38,17 @@ class CapsuleRepository(
             "contributions" to mapOf(
                 userId to mapOf(
                     "text" to text,
-                    "images" to imageUrls.ifEmpty { emptyList<String>() }  // ❤️ IMPORTANTE
+                    "images" to imageUrls.ifEmpty { emptyList<String>() }
                 )
             )
         )
 
         dataSource.saveCapsule(capsuleId, capsuleData)
     }
+
+    suspend fun joinCapsule(capsuleId: String, userId: String) {
+        dataSource.joinCapsule(capsuleId, userId)
+    }
+
 
 }
