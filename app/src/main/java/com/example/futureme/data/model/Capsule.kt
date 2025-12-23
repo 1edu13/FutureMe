@@ -25,4 +25,6 @@ data class Capsule(
     fun isEditable(): Boolean {
         return Date() < editDeadline.toDate()
     }
+
+    fun canJoin(): Boolean = Date() < editDeadline.toDate()
 }

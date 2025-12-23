@@ -39,16 +39,21 @@ fun CreateCapsuleScreen(
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
     LaunchedEffect(saveSuccess) {
-        if (saveSuccess) {
-            onNavigateBack()
-        }
+        if (saveSuccess) onNavigateBack()
     }
 
     CreateCapsuleScreenContent(
         isLoading = isLoading,
         error = error,
-        onSave = { title, text, openDateTime, imageUris, context ->
-            capsuleViewModel.saveCapsule(title, text, openDateTime, imageUris, context)
+        onSave = { title, text, editDeadline, openDateTime, imageUris, context ->
+            capsuleViewModel.saveCapsule(
+                title = title,
+                text = text,
+                editDeadline = editDeadline,
+                openDateTime = openDateTime,
+                imageUris = imageUris,
+                context = context
+            )
         },
         onNavigateBack = onNavigateBack
     )
@@ -59,44 +64,64 @@ fun CreateCapsuleScreen(
 fun CreateCapsuleScreenContent(
     isLoading: Boolean,
     error: String?,
-    onSave: (String, String, Calendar, List<Uri>, Context) -> Unit,
+    onSave: (String, String, Calendar, Calendar, List<Uri>, Context) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
 
     var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
+
+    // ✅ Nuevo: deadline para editar/unirse
+    var editDeadline by remember { mutableStateOf<Calendar?>(null) }
+
+    // Apertura
     var openDate by remember { mutableStateOf<Calendar?>(null) }
+
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var isShared by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(),
         onResult = { uris ->
-            uris.forEach { uri ->
-                Log.d("PhotoPicker", "URI seleccionada: $uri")
-            }
+            uris.forEach { uri -> Log.d("PhotoPicker", "URI seleccionada: $uri") }
             selectedImageUris = uris
         }
     )
 
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
+    // ---- Pickers Deadline ----
+    var showDeadlineDatePicker by remember { mutableStateOf(false) }
+    var showDeadlineTimePicker by remember { mutableStateOf(false) }
+    val deadlineDatePickerState = rememberDatePickerState()
+    val deadlineTimePickerState = rememberTimePickerState(is24Hour = true)
 
-    val datePickerState = rememberDatePickerState()
-    val timePickerState = rememberTimePickerState(is24Hour = true)
+    // ---- Pickers OpenDate ----
+    var showOpenDatePicker by remember { mutableStateOf(false) }
+    var showOpenTimePicker by remember { mutableStateOf(false) }
+    val openDatePickerState = rememberDatePickerState()
+    val openTimePickerState = rememberTimePickerState(is24Hour = true)
 
     val dateTimeFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
 
+    val editDeadlineText = remember(editDeadline) {
+        editDeadline?.let { dateTimeFormatter.format(it.time) } ?: ""
+    }
     val openDateText = remember(openDate) {
         openDate?.let { dateTimeFormatter.format(it.time) } ?: ""
     }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
+    // Abrir DatePicker al pulsar el field (deadline)
+    val deadlineInteractionSource = remember { MutableInteractionSource() }
+    val deadlinePressed by deadlineInteractionSource.collectIsPressedAsState()
+    LaunchedEffect(deadlinePressed) {
+        if (deadlinePressed) showDeadlineDatePicker = true
+    }
 
-    LaunchedEffect(isPressed) {
-        if (isPressed) showDatePicker = true
+    // Abrir DatePicker al pulsar el field (open date)
+    val openInteractionSource = remember { MutableInteractionSource() }
+    val openPressed by openInteractionSource.collectIsPressedAsState()
+    LaunchedEffect(openPressed) {
+        if (openPressed) showOpenDatePicker = true
     }
 
     Scaffold(
@@ -168,13 +193,27 @@ fun CreateCapsuleScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ✅ Nuevo: Deadline editar/unirse
+            OutlinedTextField(
+                value = editDeadlineText,
+                onValueChange = {},
+                label = { Text("Límite para editar / unirse") },
+                readOnly = true,
+                interactionSource = deadlineInteractionSource,
+                trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Apertura
             OutlinedTextField(
                 value = openDateText,
                 onValueChange = {},
                 label = { Text("Fecha y hora de apertura") },
                 readOnly = true,
-                interactionSource = interactionSource,
+                interactionSource = openInteractionSource,
                 trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
@@ -236,14 +275,17 @@ fun CreateCapsuleScreenContent(
             } else {
                 Button(
                     onClick = {
-                        openDate?.let {
-                            onSave(title, text, it, selectedImageUris, context)
+                        val d = editDeadline
+                        val o = openDate
+                        if (d != null && o != null) {
+                            onSave(title, text, d, o, selectedImageUris, context)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading &&
                             title.isNotBlank() &&
                             text.isNotBlank() &&
+                            editDeadline != null &&
                             openDate != null
                 ) {
                     Text("Guardar Cápsula")
@@ -252,13 +294,83 @@ fun CreateCapsuleScreenContent(
         }
     }
 
-    if (showDatePicker) {
+    // -------------------------
+    // DEADLINE: DatePicker
+    // -------------------------
+    if (showDeadlineDatePicker) {
         DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
+            onDismissRequest = { showDeadlineDatePicker = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                        deadlineDatePickerState.selectedDateMillis?.let { utcMillis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                            utcCal.timeInMillis = utcMillis
+
+                            val year = utcCal.get(Calendar.YEAR)
+                            val month = utcCal.get(Calendar.MONTH)
+                            val day = utcCal.get(Calendar.DAY_OF_MONTH)
+
+                            val localCal = Calendar.getInstance()
+                            localCal.clear()
+                            localCal.set(year, month, day)
+
+                            editDeadline = localCal
+                        }
+                        showDeadlineDatePicker = false
+                        showDeadlineTimePicker = true
+                    }
+                ) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeadlineDatePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = deadlineDatePickerState)
+        }
+    }
+
+    // DEADLINE: TimePicker
+    if (showDeadlineTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showDeadlineTimePicker = false },
+            title = { Text("Selecciona la hora (límite)") },
+            text = {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = deadlineTimePickerState)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val calendarToUpdate = editDeadline ?: Calendar.getInstance()
+                        calendarToUpdate.set(Calendar.HOUR_OF_DAY, deadlineTimePickerState.hour)
+                        calendarToUpdate.set(Calendar.MINUTE, deadlineTimePickerState.minute)
+
+                        val finalCalendar = Calendar.getInstance()
+                        finalCalendar.time = calendarToUpdate.time
+                        editDeadline = finalCalendar
+
+                        showDeadlineTimePicker = false
+                    }
+                ) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeadlineTimePicker = false }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // -------------------------
+    // OPEN DATE: DatePicker
+    // -------------------------
+    if (showOpenDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showOpenDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        openDatePickerState.selectedDateMillis?.let { utcMillis ->
                             val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                             utcCal.timeInMillis = utcMillis
 
@@ -272,52 +384,46 @@ fun CreateCapsuleScreenContent(
 
                             openDate = localCal
                         }
-                        showDatePicker = false
-                        showTimePicker = true
+                        showOpenDatePicker = false
+                        showOpenTimePicker = true
                     }
                 ) { Text("Aceptar") }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { showOpenDatePicker = false }) { Text("Cancelar") }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(state = openDatePickerState)
         }
     }
 
-    if (showTimePicker) {
+    // OPEN DATE: TimePicker
+    if (showOpenTimePicker) {
         AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            title = { Text("Selecciona la hora") },
+            onDismissRequest = { showOpenTimePicker = false },
+            title = { Text("Selecciona la hora (apertura)") },
             text = {
-                Box(
-                    Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    TimePicker(state = timePickerState)
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = openTimePickerState)
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         val calendarToUpdate = openDate ?: Calendar.getInstance()
-                        calendarToUpdate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                        calendarToUpdate.set(Calendar.MINUTE, timePickerState.minute)
+                        calendarToUpdate.set(Calendar.HOUR_OF_DAY, openTimePickerState.hour)
+                        calendarToUpdate.set(Calendar.MINUTE, openTimePickerState.minute)
 
                         val finalCalendar = Calendar.getInstance()
                         finalCalendar.time = calendarToUpdate.time
-
                         openDate = finalCalendar
-                        showTimePicker = false
+
+                        showOpenTimePicker = false
                     }
                 ) { Text("Aceptar") }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { showOpenTimePicker = false }) { Text("Cancelar") }
             }
         )
     }

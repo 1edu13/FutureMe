@@ -38,13 +38,19 @@ fun CapsuleDetailScreen(
     val error by capsuleViewModel.error.collectAsState()
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
+    val context = LocalContext.current
+
+    // ✅ userId actual (si cambia, recompondrá)
+    val currentUserId = remember {
+        AuthRepository().getCurrentUser()?.uid
+    }
+
     // Cargar cápsula
     LaunchedEffect(capsuleId) {
         capsuleViewModel.loadCapsuleById(capsuleId)
     }
-    
+
     // Si se guarda la contribución, avisar
-    val context = LocalContext.current
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
             Toast.makeText(context, "¡Contribución guardada!", Toast.LENGTH_SHORT).show()
@@ -88,7 +94,8 @@ fun CapsuleDetailScreen(
                     CapsuleDetailContent(
                         capsule = capsule!!,
                         viewModel = capsuleViewModel,
-                        context = context
+                        context = context,
+                        currentUserId = currentUserId
                     )
                 }
             }
@@ -100,8 +107,11 @@ fun CapsuleDetailScreen(
 fun CapsuleDetailContent(
     capsule: Capsule,
     viewModel: CapsuleViewModel,
-    context: Context
+    context: Context,
+    currentUserId: String?
 ) {
+    val isOwner = currentUserId != null && currentUserId == capsule.creatorId
+
     // Usamos LazyColumn para que todo sea scrolleable
     LazyColumn(
         modifier = Modifier
@@ -111,37 +121,39 @@ fun CapsuleDetailContent(
     ) {
 
         // ======================================================
-        // 1) CÓDIGO DE INVITACIÓN
+        // 1) CÓDIGO DE INVITACIÓN (SOLO OWNER)
         // ======================================================
-        item {
-            Text(
-                text = "Código de invitación",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isOwner) {
+            item {
                 Text(
-                    text = capsule.id,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
+                    text = "Código de invitación",
+                    style = MaterialTheme.typography.titleMedium
                 )
 
-                Button(onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("Código cápsula", capsule.id)
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
-                }) {
-                    Text("Copiar")
-                }
-            }
+                Spacer(modifier = Modifier.height(6.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider()
-            Spacer(modifier = Modifier.height(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = capsule.id,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Button(onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                                as android.content.ClipboardManager
+                        val clip = android.content.ClipData.newPlainText("Código cápsula", capsule.id)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                    }) {
+                        Text("Copiar")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         // ======================================================
@@ -157,7 +169,7 @@ fun CapsuleDetailContent(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            
+
             // Iterar sobre las contribuciones de cada usuario
             items(capsule.contributions.toList()) { (userId, data) ->
                 val text = data["text"] as? String ?: ""
@@ -178,7 +190,7 @@ fun CapsuleDetailContent(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        
+
                         if (text.isNotEmpty()) {
                             Text(text = text, style = MaterialTheme.typography.bodyLarge)
                             Spacer(modifier = Modifier.height(12.dp))
@@ -201,8 +213,8 @@ fun CapsuleDetailContent(
                     }
                 }
             }
-        } 
-        
+        }
+
         // ======================================================
         // 3) SI ESTÁ CERRADA → MOSTRAR CUENTA ATRÁS Y FORMULARIO
         // ======================================================
@@ -213,20 +225,19 @@ fun CapsuleDetailContent(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 val openDate = capsule.openDate.toDate()
                 Text(
                     text = "Se abrirá el: ${DateFormat.getDateTimeInstance().format(openDate)}",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Divider()
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Mostrar formulario SOLO si aún está en periodo de edición
                 if (capsule.isEditable()) {
-                     // Calcular tiempo restante para editar
                     val deadline = capsule.editDeadline.toDate()
                     Text(
                         text = "⏳ Tienes hasta el ${DateFormat.getDateTimeInstance().format(deadline)} para añadir tu parte.",
@@ -234,10 +245,9 @@ fun CapsuleDetailContent(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     ContributionForm(capsuleId = capsule.id, viewModel = viewModel, context = context)
                 } else {
-                    // Mensaje de que ya no se puede editar
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                     ) {
@@ -266,7 +276,7 @@ fun ContributionForm(
 ) {
     var text by remember { mutableStateOf("") }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(),
         onResult = { uris -> selectedImageUris = uris }
@@ -283,7 +293,7 @@ fun ContributionForm(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -318,16 +328,16 @@ fun ContributionForm(
                         modifier = Modifier
                             .size(80.dp)
                             .padding(end = 4.dp),
-                            contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { 
+            onClick = {
                 viewModel.updateContribution(capsuleId, text, selectedImageUris, context)
                 text = ""
                 selectedImageUris = emptyList()

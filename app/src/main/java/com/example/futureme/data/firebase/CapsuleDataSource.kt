@@ -88,30 +88,34 @@ class CapsuleDataSource(
             throw Exception("No se encontró ninguna cápsula con este código.")
         }
 
+        // 1) Comprobar si ya está unido
         val participants = snapshot.get("participantIds") as? List<*>
         if (participants != null && participants.contains(userId)) {
             throw Exception("Ya estás unido a esta cápsula.")
         }
 
-        // Extendemos el plazo 24h más para dar tiempo al nuevo participante
-        val newDeadlineCal = Calendar.getInstance()
-        newDeadlineCal.add(Calendar.HOUR_OF_DAY, 24)
-        val newDeadline = Timestamp(newDeadlineCal.time)
+        // 2) Regla nueva: no se puede unir si ya pasó el editDeadline
+        val editDeadline = snapshot.getTimestamp("editDeadline")
+            ?: throw Exception("La cápsula no tiene editDeadline definido.")
 
-        // Contribution vacía para el nuevo participante
+        if (java.util.Date() >= editDeadline.toDate()) {
+            throw Exception("El plazo para unirse a esta cápsula ya ha terminado.")
+        }
+
+        // 3) Contribution vacía para el nuevo participante
         val emptyContribution = mapOf(
             "text" to "",
             "images" to emptyList<String>()
         )
 
-        // Actualizamos participantIds, creamos su contribution y actualizamos editDeadline
+        // 4) Actualizamos participantIds y creamos su contribution
+        // (NO tocamos openDate ni editDeadline)
         docRef.update(
-                mapOf(
-                    "participantIds" to FieldValue.arrayUnion(userId),
-                    "contributions.$userId" to emptyContribution,
-                    "editDeadline" to newDeadline
-                )
+            mapOf(
+                "participantIds" to FieldValue.arrayUnion(userId),
+                "contributions.$userId" to emptyContribution
             )
-            .await()
+        ).await()
     }
+
 }

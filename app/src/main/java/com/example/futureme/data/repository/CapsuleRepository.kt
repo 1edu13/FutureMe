@@ -21,23 +21,26 @@ class CapsuleRepository(
         userId: String,
         title: String,
         text: String,
+        editDeadline: Calendar,
         openDateTime: Calendar,
         imageUrls: List<String>
     ) {
 
         val capsuleId = java.util.UUID.randomUUID().toString()
-        
-        // Calculamos la fecha límite (24h después de crearla)
-        val deadlineCal = Calendar.getInstance()
-        deadlineCal.add(Calendar.HOUR_OF_DAY, 24)
+        val deadlineCal = (editDeadline.clone() as Calendar)
+        val openCal = (openDateTime.clone() as Calendar)
+        if (openCal.before(deadlineCal)) {
+            openCal.timeInMillis = deadlineCal.timeInMillis
+            // opcional: openCal.add(Calendar.MINUTE, 1)
+        }
 
         val capsuleData = hashMapOf(
             "creatorId" to userId,
             "ownerId" to userId,
             "title" to title,
             "createdAt" to Timestamp.now(),
-            "openDate" to Timestamp(openDateTime.time),
             "editDeadline" to Timestamp(deadlineCal.time),
+            "openDate" to Timestamp(openCal.time),
             "status" to "scheduled",
             "participantIds" to listOf(userId),
             "contributions" to mapOf(
@@ -49,6 +52,7 @@ class CapsuleRepository(
         )
 
         dataSource.saveCapsule(capsuleId, capsuleData)
+
     }
     
     suspend fun updateContribution(

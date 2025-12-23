@@ -79,6 +79,7 @@ class CapsuleViewModel : ViewModel() {
         title: String,
         text: String,
         openDateTime: Calendar,
+        editDeadline: Calendar,
         imageUris: List<Uri>,
         context: Context
     ) {
@@ -103,6 +104,7 @@ class CapsuleViewModel : ViewModel() {
                     title = title,
                     text = text,
                     openDateTime = openDateTime,
+                    editDeadline = editDeadline,
                     imageUrls = imageUrls
                 )
 
@@ -119,7 +121,6 @@ class CapsuleViewModel : ViewModel() {
             }
         }
     }
-    
     fun updateContribution(
         capsuleId: String,
         text: String,
@@ -138,27 +139,52 @@ class CapsuleViewModel : ViewModel() {
             _saveSuccess.value = false
 
             try {
-                val imageUrls = storageRepository.uploadImages(context, userId, imageUris)
+                // 0) Asegurarnos de tener la cápsula cargada (para leer lo anterior)
+                val capsule = _selectedCapsule.value?.takeIf { it.id == capsuleId }
+                    ?: capsuleRepository.getCapsuleById(capsuleId)
 
+                if (capsule == null) {
+                    _error.value = "La cápsula no existe."
+                    return@launch
+                }
+
+                val oldContribution = capsule.contributions[userId]
+                val oldText = oldContribution?.get("text") as? String ?: ""
+                val oldImages = oldContribution?.get("images") as? List<String> ?: emptyList()
+
+                // 1) Subir SOLO las nuevas imágenes (si hay)
+                val newImageUrls = storageRepository.uploadImages(context, userId, imageUris)
+
+                // 2) Mezclar imágenes (no borrar las antiguas)
+                val finalImages = oldImages + newImageUrls
+
+                // 3) Mezclar texto (no borrar el antiguo)
+                val finalText = when {
+                    text.isBlank() -> oldText
+                    oldText.isBlank() -> text
+                    else -> oldText + "\n\n" + text
+                }
+
+                // 4) Guardar contribución mezclada
                 capsuleRepository.updateContribution(
                     capsuleId = capsuleId,
                     userId = userId,
-                    text = text,
-                    imageUrls = imageUrls
+                    text = finalText,
+                    imageUrls = finalImages
                 )
 
-                // Recargar detalles
+                // 5) Recargar detalles
                 loadCapsuleById(capsuleId)
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
-                Log.e("CapsuleViewModel", "Error updating contribution", e)
                 _error.value = "Error: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
 
     fun clearSelectedCapsule() {
