@@ -35,10 +35,6 @@ class CapsuleViewModel : ViewModel() {
     private val _selectedCapsule = MutableStateFlow<Capsule?>(null)
     val selectedCapsule: StateFlow<Capsule?> = _selectedCapsule
 
-    init {
-        loadCapsules()
-    }
-
     fun loadCapsules() {
         val userId = authRepository.getCurrentUser()?.uid
         if (userId == null) {

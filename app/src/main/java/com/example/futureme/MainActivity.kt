@@ -80,12 +80,12 @@ fun AppNavHost(
         // HOME
         composable(Screen.Home.route) {
             HomeScreen(
+                userId = user?.uid, // ✅ aquí
                 authViewModel = authViewModel,
                 capsuleViewModel = capsuleViewModel,
                 onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) },
                 onJoinCapsule = { navController.navigate(Screen.JoinCapsule.route) },
                 onCapsuleClick = { capsule ->
-                    // 👉 SIEMPRE DEJAMOS ENTRAR A DETALLES
                     navController.navigate(Screen.CapsuleDetail.createRoute(capsule.id))
                 }
             )
@@ -126,6 +126,7 @@ fun AppNavHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    userId: String?, // ✅ nuevo
     authViewModel: AuthViewModel,
     capsuleViewModel: CapsuleViewModel,
     onNavigateToCreate: () -> Unit,
@@ -136,8 +137,11 @@ fun HomeScreen(
     val isLoading by capsuleViewModel.isLoading.collectAsState()
     val error by capsuleViewModel.error.collectAsState()
 
-    LaunchedEffect(Unit) {
-        capsuleViewModel.loadCapsules()
+    // ✅ Cargar cápsulas SOLO cuando haya userId
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            capsuleViewModel.loadCapsules()
+        }
     }
 
     Scaffold(
@@ -157,6 +161,20 @@ fun HomeScreen(
             }
         }
     ) { innerPadding ->
+
+        // Si aún no hay usuario (momento de transición), no mostramos errores raros
+        if (userId == null) {
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -180,7 +198,11 @@ fun HomeScreen(
             }
 
             error?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
 
             if (capsules.isEmpty() && !isLoading) {
@@ -208,8 +230,8 @@ fun CapsuleItem(capsule: Capsule, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClick = onClick)              // <-- SIEMPRE CLICK
-            .alpha(if (isOpenable) 1f else 0.6f),      // Solo cambia opacidad
+            .clickable(onClick = onClick)
+            .alpha(if (isOpenable) 1f else 0.6f),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
