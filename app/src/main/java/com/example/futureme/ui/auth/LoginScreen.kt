@@ -1,25 +1,42 @@
 package com.example.futureme.ui.auth
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.futureme.R
 import com.example.futureme.ui.theme.FutureMeTheme
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 
-// Enum para definir el modo de la pantalla
+
+
 enum class AuthMode {
     LOGIN,
     SIGN_UP
 }
 
-/**
- * El Composable "inteligente" que se conecta al ViewModel.
- */
 @Composable
 fun LoginScreen(authViewModel: AuthViewModel) {
     val isLoading by authViewModel.isLoading.collectAsState()
@@ -33,9 +50,6 @@ fun LoginScreen(authViewModel: AuthViewModel) {
     )
 }
 
-/**
- * El Composable "tonto" que solo se encarga de la UI.
- */
 @Composable
 fun LoginScreenContent(
     isLoading: Boolean,
@@ -48,130 +62,251 @@ fun LoginScreenContent(
     var password by remember { mutableStateOf("") }
     var authMode by remember { mutableStateOf(AuthMode.LOGIN) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = if (authMode == AuthMode.LOGIN) "Bienvenido de Nuevo" else "Crea tu Cuenta",
-            style = MaterialTheme.typography.headlineMedium
+    // 🎨 Paleta (más suave, como tu mock)
+    val gold = Color(0xFFD4AF37)
+    val goldText = gold.copy(alpha = 0.78f)
+    val goldBorder = gold.copy(alpha = 0.55f)
+    val goldHint = gold.copy(alpha = 0.50f)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // 🔹 Fondo imagen
+        Image(
+            painter = painterResource(id = R.drawable.login_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (authMode == AuthMode.SIGN_UP) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
-                enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        error?.let {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = it, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = {
-                    if (authMode == AuthMode.LOGIN) {
-                        onSignIn(email, password)
-                    } else {
-                        onSignUp(name, email, password)
-                    }
-                },
-                enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (authMode == AuthMode.LOGIN) "Iniciar Sesión" else "Registrarse")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val (question, action) = if (authMode == AuthMode.LOGIN) {
-                "¿No tienes cuenta?" to "Regístrate"
-            } else {
-                "¿Ya tienes cuenta?" to "Inicia Sesión"
-            }
-
-            Row {
-                Text(question)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = action,
-                    modifier = Modifier.clickable { 
-                        authMode = if (authMode == AuthMode.LOGIN) AuthMode.SIGN_UP else AuthMode.LOGIN
-                    },
-                    color = MaterialTheme.colorScheme.primary
+        // 🔹 Overlay oscuro (para legibilidad)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.55f),
+                        0.5f to Color.Black.copy(alpha = 0.35f),
+                        1f to Color.Black.copy(alpha = 0.62f)
+                    )
                 )
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 28.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = if (authMode == AuthMode.LOGIN) "Bienvenido de Nuevo" else "Crea tu Cuenta",
+                color = goldText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            if (authMode == AuthMode.SIGN_UP) {
+                GoldTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = "Nombre",
+                    enabled = !isLoading,
+                    goldText = goldText,
+                    goldBorder = goldBorder,
+                    goldHint = goldHint
+                )
+                Spacer(modifier = Modifier.height(18.dp))
+            }
+
+            GoldTextField(
+                value = email,
+                onValueChange = { email = it },
+                placeholder = "Email",
+                keyboardType = KeyboardType.Email,
+                enabled = !isLoading,
+                goldText = goldText,
+                goldBorder = goldBorder,
+                goldHint = goldHint
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            GoldTextField(
+                value = password,
+                onValueChange = { password = it },
+                placeholder = "Contraseña",
+                isPassword = true,
+                enabled = !isLoading,
+                goldText = goldText,
+                goldBorder = goldBorder,
+                goldHint = goldHint
+            )
+
+            error?.let {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+            }
+
+            // ✅ MÁS AIRE (aquí estaba el “pegado”)
+            Spacer(modifier = Modifier.height(if (error == null) 34.dp else 26.dp))
+
+            if (isLoading) {
+                CircularProgressIndicator(color = goldText)
+            } else {
+
+                GoldButton(
+                    text = if (authMode == AuthMode.LOGIN) "Iniciar Sesión" else "Registrarse",
+                    onClick = {
+                        if (authMode == AuthMode.LOGIN) {
+                            onSignIn(email, password)
+                        } else {
+                            onSignUp(name, email, password)
+                        }
+                    },
+                    gold = gold
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                val (question, action) = if (authMode == AuthMode.LOGIN) {
+                    "¿No tienes cuenta?" to "Regístrate"
+                } else {
+                    "¿Ya tienes cuenta?" to "Inicia Sesión"
+                }
+
+                Row {
+                    Text(question, color = goldText)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = action,
+                        color = goldText.copy(alpha = 0.95f),
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable {
+                            authMode =
+                                if (authMode == AuthMode.LOGIN) AuthMode.SIGN_UP else AuthMode.LOGIN
+                        }
+                    )
+                }
             }
         }
     }
 }
 
-@Preview(showBackground = true, name = "Login Screen Preview")
+/* ---------- COMPONENTES ---------- */
+
 @Composable
-fun LoginScreenContentPreview() {
+private fun GoldTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    enabled: Boolean,
+    goldText: Color,
+    goldBorder: Color,
+    goldHint: Color,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        singleLine = true,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        placeholder = { Text(placeholder, color = goldHint) },
+        textStyle = LocalTextStyle.current.copy(color = goldText, fontSize = 16.sp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = goldBorder.copy(alpha = 0.85f),
+            unfocusedBorderColor = goldBorder,
+            focusedContainerColor = Color.Black.copy(alpha = 0.35f),
+            unfocusedContainerColor = Color.Black.copy(alpha = 0.30f),
+            cursorColor = goldText,
+            focusedTextColor = goldText,
+            unfocusedTextColor = goldText
+        )
+    )
+}
+
+@Composable
+private fun GoldButton(
+    text: String,
+    onClick: () -> Unit,
+    gold: Color
+) {
+    val shape = RoundedCornerShape(28.dp)
+
+    // Paleta suave como tu mock
+    val goldText = gold.copy(alpha = 0.90f)
+    val goldBorder = gold.copy(alpha = 0.65f)
+    val goldGlow = gold.copy(alpha = 0.35f)
+
+    // Detecta si está "pulsado"
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+
+    // Animaciones
+    val containerColor by animateColorAsState(
+        targetValue = if (pressed) gold.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.55f),
+        label = "buttonContainer"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (pressed) gold.copy(alpha = 0.85f) else goldBorder,
+        label = "buttonBorder"
+    )
+    val elevation by animateDpAsState(
+        targetValue = if (pressed) 10.dp else 18.dp,
+        label = "buttonElevation"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .shadow(
+                elevation = elevation,
+                shape = shape,
+                ambientColor = goldGlow,
+                spotColor = goldGlow
+            )
+    ) {
+        Button(
+            onClick = onClick,
+            shape = shape,
+            modifier = Modifier.fillMaxSize(),
+            interactionSource = interactionSource,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = goldText
+            ),
+            border = BorderStroke(1.dp, borderColor)
+        ) {
+            Text(
+                text = text,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = goldText
+            )
+        }
+    }
+}
+
+
+/* ---------- PREVIEWS ---------- */
+
+@Preview(showBackground = true)
+@Composable
+fun LoginPreview() {
     FutureMeTheme {
         LoginScreenContent(
             isLoading = false,
             error = null,
-            onSignIn = { _, _ -> },
-            onSignUp = { _, _, _ -> }
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Login Screen Loading Preview")
-@Composable
-fun LoginScreenContentLoadingPreview() {
-    FutureMeTheme {
-        LoginScreenContent(
-            isLoading = true, // <-- ¡Ahora podemos previsualizar el estado de carga!
-            error = null,
-            onSignIn = { _, _ -> },
-            onSignUp = { _, _, _ -> }
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Login Screen Error Preview")
-@Composable
-fun LoginScreenContentErrorPreview() {
-    FutureMeTheme {
-        LoginScreenContent(
-            isLoading = false,
-            error = "Email o contraseña incorrectos.", // <-- ¡Y el estado de error!
             onSignIn = { _, _ -> },
             onSignUp = { _, _, _ -> }
         )
