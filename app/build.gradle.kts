@@ -66,7 +66,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
-    implementation("androidx.compose.material:material-icons-extended:<version>")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }

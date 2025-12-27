@@ -44,6 +44,7 @@ import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.FutureMeTheme
 import kotlinx.coroutines.launch
 import java.text.DateFormat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
     private val capsuleViewModel: CapsuleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
