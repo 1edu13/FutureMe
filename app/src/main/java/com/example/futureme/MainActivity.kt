@@ -5,10 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -19,13 +23,20 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.Image
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -150,17 +161,16 @@ private fun AppNavContent(
             LoginScreen(authViewModel = authViewModel)
         }
 
-        // ✅ MENÚ PRINCIPAL (nuevo)
+
         composable(Screen.MainMenu.route) {
             MainMenuScreen(
                 onMenuClick = onOpenDrawer,
                 onGoToCapsules = { navController.navigate(Screen.Home.route) },
-                onGoToCreate = { navController.navigate(Screen.CreateCapsule.route) },
-                onGoToJoin = { navController.navigate(Screen.JoinCapsule.route) },
                 onGoToProfile = { navController.navigate(Screen.Profile.route) },
                 onGoToSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
+
 
         // HOME (Mis cápsulas)
         composable(Screen.Home.route) {
@@ -318,50 +328,184 @@ private fun AppDrawerContent(
 fun MainMenuScreen(
     onMenuClick: (() -> Unit)?,
     onGoToCapsules: () -> Unit,
-    onGoToCreate: () -> Unit,
-    onGoToJoin: () -> Unit,
     onGoToProfile: () -> Unit,
     onGoToSettings: () -> Unit
 ) {
+    val gold = Color(0xFFD4AF37)
+    val bg = Color(0xFF070707)
+    val cardBg = Color(0xFF0E0E0E)
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Menú") },
+                title = {
+                    Text(
+                        "Menú",
+                        color = gold,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
                     if (onMenuClick != null) {
                         IconButton(onClick = onMenuClick) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú")
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = "Menú",
+                                tint = gold
+                            )
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF0B0B0B)
+                )
             )
-        }
+        },
+        containerColor = bg
     ) { innerPadding ->
-        Column(
+
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
         ) {
-            Button(modifier = Modifier.fillMaxWidth(), onClick = onGoToCapsules) {
-                Text("Mis cápsulas")
+            // Imagen de fondo (la del login)
+            Image(
+                painter = painterResource(id = R.drawable.login_bg),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+
+            // Overlay oscuro para legibilidad
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.65f))
+            )
+
+            // Contenido del menú
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 18.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // 🔽 AQUÍ VA TODO TU CONTENIDO
+                // Botón Cápsulas
+                // Spacer
+                // Row Perfil / Ajustes
             }
-            Button(modifier = Modifier.fillMaxWidth(), onClick = onGoToCreate) {
-                Text("Crear cápsula")
-            }
-            Button(modifier = Modifier.fillMaxWidth(), onClick = onGoToJoin) {
-                Text("Unirse a cápsula")
-            }
-            OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = onGoToProfile) {
-                Text("Perfil")
-            }
-            OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = onGoToSettings) {
-                Text("Ajustes")
+        }
+
+        Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                // Pequeño empuje para que no quede "flotando" en medio
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // ---------------- BOTÓN PRINCIPAL: CÁPSULAS ----------------
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(82.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    color = cardBg,
+                    border = BorderStroke(1.dp, gold.copy(alpha = 0.35f)),
+                    shadowElevation = 10.dp,
+                    onClick = onGoToCapsules
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Cápsulas",
+                            color = gold,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(26.dp))
+
+                // ---------------- DOS BOTONES SECUNDARIOS ----------------
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(26.dp)
+                ) {
+                    GoldImageCardButton(
+                        label = "Perfil",
+                        drawableRes = R.drawable.ic_profile_gold,
+                        onClick = onGoToProfile,
+                        modifier = Modifier.weight(1f),
+                        gold = gold,
+                        cardBg = cardBg
+                    )
+                    GoldImageCardButton(
+                        label = "Ajustes",
+                        drawableRes = R.drawable.ic_settings_gold,
+                        onClick = onGoToSettings,
+                        modifier = Modifier.weight(1f),
+                        gold = gold,
+                        cardBg = cardBg
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
             }
         }
     }
+
+@Composable
+private fun GoldImageCardButton(
+    label: String,
+    drawableRes: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    gold: Color,
+    cardBg: Color
+) {
+    Surface(
+        modifier = modifier.height(140.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = cardBg,
+        border = BorderStroke(0.5.dp, gold.copy(alpha = 0.25f)),
+        shadowElevation = 8.dp,
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Image(
+                painter = painterResource(id = drawableRes),
+                contentDescription = label,
+                modifier = Modifier.size(72.dp),
+                contentScale = ContentScale.Fit
+            )
+
+            Text(
+                text = label,
+                color = gold,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
