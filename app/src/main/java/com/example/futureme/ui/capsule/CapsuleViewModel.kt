@@ -78,6 +78,7 @@ class CapsuleViewModel : ViewModel() {
     fun saveCapsule(
         title: String,
         text: String,
+        isShared: Boolean,
         openDateTime: Calendar,
         editDeadline: Calendar,
         imageUris: List<Uri>,
@@ -103,6 +104,7 @@ class CapsuleViewModel : ViewModel() {
                     userId = userId,
                     title = title,
                     text = text,
+                    isShared = isShared,
                     openDateTime = openDateTime,
                     editDeadline = editDeadline,
                     imageUrls = imageUrls

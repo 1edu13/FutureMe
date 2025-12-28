@@ -45,10 +45,11 @@ fun CreateCapsuleScreen(
     CreateCapsuleScreenContent(
         isLoading = isLoading,
         error = error,
-        onSave = { title, text, editDeadline, openDateTime, imageUris, context ->
+        onSave = { title, text, isShared, editDeadline, openDateTime, imageUris, context ->
             capsuleViewModel.saveCapsule(
                 title = title,
                 text = text,
+                isShared = isShared,
                 editDeadline = editDeadline,
                 openDateTime = openDateTime,
                 imageUris = imageUris,
@@ -64,7 +65,7 @@ fun CreateCapsuleScreen(
 fun CreateCapsuleScreenContent(
     isLoading: Boolean,
     error: String?,
-    onSave: (String, String, Calendar, Calendar, List<Uri>, Context) -> Unit,
+    onSave: (String, String, Boolean, Calendar, Calendar, List<Uri>, Context) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -278,7 +279,7 @@ fun CreateCapsuleScreenContent(
                         val d = editDeadline
                         val o = openDate
                         if (d != null && o != null) {
-                            onSave(title, text, d, o, selectedImageUris, context)
+                            onSave(title, text, isShared, d, o, selectedImageUris, context)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),

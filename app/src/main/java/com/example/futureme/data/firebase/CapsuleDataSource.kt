@@ -41,6 +41,7 @@ class CapsuleDataSource(
         // para que siga siendo editable. Las nuevas cápsulas sí tendrán editDeadline.
         val openDate = doc.getTimestamp("openDate") ?: Timestamp.now()
         val editDeadline = doc.getTimestamp("editDeadline") ?: openDate
+        val isShared = doc.getBoolean("isShared") ?: false
 
         return Capsule(
             id = doc.id,
@@ -50,6 +51,7 @@ class CapsuleDataSource(
             createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
             openDate = openDate,
             editDeadline = editDeadline,
+            isShared = isShared,
             status = doc.getString("status") ?: "",
             images = doc.get("images") as? List<String> ?: emptyList(),
             contributions = (doc.get("contributions") as? Map<String, Map<String, Any>>) ?: emptyMap()

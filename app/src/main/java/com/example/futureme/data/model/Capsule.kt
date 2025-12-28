@@ -11,7 +11,8 @@ data class Capsule(
     val createdAt: Timestamp = Timestamp.now(),
     val openDate: Timestamp = Timestamp.now(),
     // Nueva fecha límite para dejar de aceptar contribuciones
-    val editDeadline: Timestamp = Timestamp.now(), 
+    val editDeadline: Timestamp = Timestamp.now(),
+    val isShared: Boolean = false,
     val status: String = "",
     val images: List<String> = emptyList(),
     val contributions: Map<String, Map<String, Any>> = emptyMap()

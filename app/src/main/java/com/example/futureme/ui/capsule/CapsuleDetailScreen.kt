@@ -123,7 +123,7 @@ fun CapsuleDetailContent(
         // ======================================================
         // 1) CÓDIGO DE INVITACIÓN (SOLO OWNER)
         // ======================================================
-        if (isOwner) {
+        if (isOwner && capsule.isShared && capsule.isEditable() && !capsule.isOpenable()) {
             item {
                 Text(
                     text = "Código de invitación",
@@ -240,7 +240,7 @@ fun CapsuleDetailContent(
                 if (capsule.isEditable()) {
                     val deadline = capsule.editDeadline.toDate()
                     Text(
-                        text = "⏳ Tienes hasta el ${DateFormat.getDateTimeInstance().format(deadline)} para añadir tu parte.",
+                        text = "⏳ Tienes hasta el ${DateFormat.getDateTimeInstance().format(deadline)} para añadir algo a la capsula.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -284,12 +284,12 @@ fun ContributionForm(
 
     Column {
         Text(
-            text = "Añade tu parte a la cápsula",
+            text = "Añade algo a la cápsula",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Nadie podrá verlo hasta que la cápsula se abra.",
+            text = "No se podrá ver hasta que la cápsula se abra.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

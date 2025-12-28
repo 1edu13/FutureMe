@@ -21,6 +21,7 @@ class CapsuleRepository(
         userId: String,
         title: String,
         text: String,
+        isShared: Boolean,          // ✅ NUEVO
         editDeadline: Calendar,
         openDateTime: Calendar,
         imageUrls: List<String>
@@ -38,6 +39,7 @@ class CapsuleRepository(
             "creatorId" to userId,
             "ownerId" to userId,
             "title" to title,
+            "isShared" to isShared,
             "createdAt" to Timestamp.now(),
             "editDeadline" to Timestamp(deadlineCal.time),
             "openDate" to Timestamp(openCal.time),
