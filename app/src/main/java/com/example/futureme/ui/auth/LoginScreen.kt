@@ -62,11 +62,15 @@ fun LoginScreenContent(
     var password by remember { mutableStateOf("") }
     var authMode by remember { mutableStateOf(AuthMode.LOGIN) }
 
-    // 🎨 Paleta (más suave, como tu mock)
+    // 🎨 Paleta (texto blanco roto + dorado acento)
     val gold = Color(0xFFD4AF37)
-    val goldText = gold.copy(alpha = 0.78f)
+
+    val textPrimary = Color(0xFFEDEDED)                // 👈 blanco roto principal
+    val textSecondary = textPrimary.copy(alpha = 0.78f)
+    val hint = textPrimary.copy(alpha = 0.55f)
+
     val goldBorder = gold.copy(alpha = 0.55f)
-    val goldHint = gold.copy(alpha = 0.50f)
+    val goldAccent = gold.copy(alpha = 0.85f)
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -101,7 +105,7 @@ fun LoginScreenContent(
 
             Text(
                 text = if (authMode == AuthMode.LOGIN) "Bienvenido de Nuevo" else "Crea tu Cuenta",
-                color = goldText,
+                color = textPrimary, // 👈 antes goldText
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -114,9 +118,10 @@ fun LoginScreenContent(
                     onValueChange = { name = it },
                     placeholder = "Nombre",
                     enabled = !isLoading,
-                    goldText = goldText,
-                    goldBorder = goldBorder,
-                    goldHint = goldHint
+                    textColor = textPrimary,
+                    borderColor = goldBorder,
+                    hintColor = hint,
+                    cursorColor = goldAccent
                 )
                 Spacer(modifier = Modifier.height(18.dp))
             }
@@ -127,9 +132,10 @@ fun LoginScreenContent(
                 placeholder = "Email",
                 keyboardType = KeyboardType.Email,
                 enabled = !isLoading,
-                goldText = goldText,
-                goldBorder = goldBorder,
-                goldHint = goldHint
+                textColor = textPrimary,
+                borderColor = goldBorder,
+                hintColor = hint,
+                cursorColor = goldAccent
             )
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -140,9 +146,10 @@ fun LoginScreenContent(
                 placeholder = "Contraseña",
                 isPassword = true,
                 enabled = !isLoading,
-                goldText = goldText,
-                goldBorder = goldBorder,
-                goldHint = goldHint
+                textColor = textPrimary,
+                borderColor = goldBorder,
+                hintColor = hint,
+                cursorColor = goldAccent
             )
 
             error?.let {
@@ -150,11 +157,10 @@ fun LoginScreenContent(
                 Text(text = it, color = MaterialTheme.colorScheme.error)
             }
 
-            // ✅ MÁS AIRE (aquí estaba el “pegado”)
             Spacer(modifier = Modifier.height(if (error == null) 34.dp else 26.dp))
 
             if (isLoading) {
-                CircularProgressIndicator(color = goldText)
+                CircularProgressIndicator(color = goldAccent)
             } else {
 
                 GoldButton(
@@ -166,7 +172,8 @@ fun LoginScreenContent(
                             onSignUp(name, email, password)
                         }
                     },
-                    gold = gold
+                    gold = gold,
+                    textPrimary = textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))
@@ -178,15 +185,14 @@ fun LoginScreenContent(
                 }
 
                 Row {
-                    Text(question, color = goldText)
+                    Text(question, color = textSecondary)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = action,
-                        color = goldText.copy(alpha = 0.95f),
+                        color = goldAccent, // 👈 acento dorado solo aquí
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.clickable {
-                            authMode =
-                                if (authMode == AuthMode.LOGIN) AuthMode.SIGN_UP else AuthMode.LOGIN
+                            authMode = if (authMode == AuthMode.LOGIN) AuthMode.SIGN_UP else AuthMode.LOGIN
                         }
                     )
                 }
@@ -194,6 +200,7 @@ fun LoginScreenContent(
         }
     }
 }
+
 
 /* ---------- COMPONENTES ---------- */
 
@@ -203,9 +210,10 @@ private fun GoldTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     enabled: Boolean,
-    goldText: Color,
-    goldBorder: Color,
-    goldHint: Color,
+    textColor: Color,
+    borderColor: Color,
+    hintColor: Color,
+    cursorColor: Color,
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false
 ) {
@@ -216,20 +224,20 @@ private fun GoldTextField(
         singleLine = true,
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        placeholder = { Text(placeholder, color = goldHint) },
-        textStyle = LocalTextStyle.current.copy(color = goldText, fontSize = 16.sp),
+        placeholder = { Text(placeholder, color = hintColor) },
+        textStyle = LocalTextStyle.current.copy(color = textColor, fontSize = 16.sp),
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = goldBorder.copy(alpha = 0.85f),
-            unfocusedBorderColor = goldBorder,
+            focusedBorderColor = borderColor.copy(alpha = 0.85f),
+            unfocusedBorderColor = borderColor,
             focusedContainerColor = Color.Black.copy(alpha = 0.35f),
             unfocusedContainerColor = Color.Black.copy(alpha = 0.30f),
-            cursorColor = goldText,
-            focusedTextColor = goldText,
-            unfocusedTextColor = goldText
+            cursorColor = cursorColor,
+            focusedTextColor = textColor,
+            unfocusedTextColor = textColor
         )
     )
 }
@@ -238,26 +246,23 @@ private fun GoldTextField(
 private fun GoldButton(
     text: String,
     onClick: () -> Unit,
-    gold: Color
+    gold: Color,
+    textPrimary: Color
 ) {
     val shape = RoundedCornerShape(28.dp)
 
-    // Paleta suave como tu mock
-    val goldText = gold.copy(alpha = 0.90f)
-    val goldBorder = gold.copy(alpha = 0.65f)
-    val goldGlow = gold.copy(alpha = 0.35f)
+    val borderBase = gold.copy(alpha = 0.65f)
+    val glow = gold.copy(alpha = 0.30f)
 
-    // Detecta si está "pulsado"
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
-    // Animaciones
     val containerColor by animateColorAsState(
-        targetValue = if (pressed) gold.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.55f),
+        targetValue = if (pressed) gold.copy(alpha = 0.14f) else Color.Black.copy(alpha = 0.55f),
         label = "buttonContainer"
     )
     val borderColor by animateColorAsState(
-        targetValue = if (pressed) gold.copy(alpha = 0.85f) else goldBorder,
+        targetValue = if (pressed) gold.copy(alpha = 0.90f) else borderBase,
         label = "buttonBorder"
     )
     val elevation by animateDpAsState(
@@ -272,8 +277,8 @@ private fun GoldButton(
             .shadow(
                 elevation = elevation,
                 shape = shape,
-                ambientColor = goldGlow,
-                spotColor = goldGlow
+                ambientColor = glow,
+                spotColor = glow
             )
     ) {
         Button(
@@ -283,7 +288,7 @@ private fun GoldButton(
             interactionSource = interactionSource,
             colors = ButtonDefaults.buttonColors(
                 containerColor = containerColor,
-                contentColor = goldText
+                contentColor = textPrimary
             ),
             border = BorderStroke(1.dp, borderColor)
         ) {
@@ -291,11 +296,12 @@ private fun GoldButton(
                 text = text,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = goldText
+                color = textPrimary // 👈 blanco roto
             )
         }
     }
 }
+
 
 
 /* ---------- PREVIEWS ---------- */

@@ -28,7 +28,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -205,8 +204,16 @@ private fun AppNavContent(
 
         // PERFIL
         composable(Screen.Profile.route) {
-            ProfileScreen(
-                userEmail = authViewModel.user.collectAsState().value?.email ?: "",
+            com.example.futureme.ui.profile.ProfileScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onGoToEditAccount = { navController.navigate(Screen.EditAccount.route) }
+            )
+        }
+
+        composable(Screen.EditAccount.route) {
+            com.example.futureme.ui.profile.EditAccountScreen(
+                authViewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -238,28 +245,49 @@ private fun AppDrawerContent(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    ModalDrawerSheet {
+    val gold = Color(0xFFD4AF37)
+    val textPrimary = Color(0xFFEDEDED)
+    val drawerBg = Color(0xFF0B0B0B)
+    val drawerItemBg = Color(0xFF121212)
+
+    ModalDrawerSheet(
+        drawerContainerColor = drawerBg,
+        drawerContentColor = textPrimary
+    ) {
         Spacer(Modifier.height(12.dp))
+
         Text(
             text = "FutureMe",
             style = MaterialTheme.typography.titleLarge,
+            color = textPrimary,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Text(
             text = userEmail,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = textPrimary.copy(alpha = 0.75f),
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
         Spacer(Modifier.height(12.dp))
-        Divider()
+        Divider(color = gold.copy(alpha = 0.20f))
+
+        @Composable
+        fun itemColors(selected: Boolean) = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = gold.copy(alpha = 0.18f),
+            unselectedContainerColor = Color.Transparent,
+            selectedTextColor = textPrimary,
+            unselectedTextColor = textPrimary,
+            selectedIconColor = gold,
+            unselectedIconColor = gold
+        )
 
         NavigationDrawerItem(
             label = { Text("Menú") },
             selected = currentRoute == Screen.MainMenu.route,
             onClick = { onNavigate(Screen.MainMenu.route) },
             icon = { Icon(Icons.Default.Menu, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.MainMenu.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
@@ -268,6 +296,7 @@ private fun AppDrawerContent(
             selected = currentRoute == Screen.Home.route,
             onClick = { onNavigate(Screen.Home.route) },
             icon = { Icon(Icons.Default.Home, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.Home.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
@@ -276,6 +305,7 @@ private fun AppDrawerContent(
             selected = currentRoute == Screen.CreateCapsule.route,
             onClick = { onNavigate(Screen.CreateCapsule.route) },
             icon = { Icon(Icons.Default.AddCircle, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.CreateCapsule.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
@@ -284,11 +314,12 @@ private fun AppDrawerContent(
             selected = currentRoute == Screen.JoinCapsule.route,
             onClick = { onNavigate(Screen.JoinCapsule.route) },
             icon = { Icon(Icons.Default.Link, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.JoinCapsule.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
         Spacer(Modifier.height(8.dp))
-        Divider()
+        Divider(color = gold.copy(alpha = 0.20f))
         Spacer(Modifier.height(8.dp))
 
         NavigationDrawerItem(
@@ -296,6 +327,7 @@ private fun AppDrawerContent(
             selected = currentRoute == Screen.Profile.route,
             onClick = { onNavigate(Screen.Profile.route) },
             icon = { Icon(Icons.Default.Person, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.Profile.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
@@ -304,11 +336,12 @@ private fun AppDrawerContent(
             selected = currentRoute == Screen.Settings.route,
             onClick = { onNavigate(Screen.Settings.route) },
             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            colors = itemColors(currentRoute == Screen.Settings.route),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
         Spacer(Modifier.height(8.dp))
-        Divider()
+        Divider(color = gold.copy(alpha = 0.20f))
         Spacer(Modifier.height(8.dp))
 
         NavigationDrawerItem(
@@ -316,12 +349,18 @@ private fun AppDrawerContent(
             selected = false,
             onClick = onLogout,
             icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
+            colors = NavigationDrawerItemDefaults.colors(
+                unselectedContainerColor = Color.Transparent,
+                unselectedTextColor = textPrimary,
+                unselectedIconColor = gold
+            ),
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
 
         Spacer(Modifier.height(12.dp))
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -332,35 +371,48 @@ fun MainMenuScreen(
     onGoToSettings: () -> Unit
 ) {
     val gold = Color(0xFFD4AF37)
-    val bg = Color(0xFF070707)
+    val titleGold = Color(0xFFC9A84D)      // 👈 dorado suave para el título
+    val textPrimary = Color(0xFFEDEDED)    // 👈 blanco roto
+    val bg = Color.Black
     val cardBg = Color(0xFF0E0E0E)
+    val toolbarBg = Color(0xFF161616)      // 👈 negro antracita para la toolbar
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Menú",
-                        color = gold,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    if (onMenuClick != null) {
-                        IconButton(onClick = onMenuClick) {
-                            Icon(
-                                Icons.Default.Menu,
-                                contentDescription = "Menú",
-                                tint = gold
-                            )
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "Menú",
+                            color = titleGold,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    navigationIcon = {
+                        if (onMenuClick != null) {
+                            IconButton(onClick = onMenuClick) {
+                                Icon(
+                                    Icons.Default.Menu,
+                                    contentDescription = "Menú",
+                                    tint = gold
+                                )
+                            }
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0B0B)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = toolbarBg,
+                        titleContentColor = titleGold,
+                        navigationIconContentColor = gold,
+                        actionIconContentColor = gold
+                    )
                 )
-            )
+
+                // Línea inferior sutil (premium)
+                Divider(
+                    color = gold.copy(alpha = 0.20f),
+                    thickness = 1.dp
+                )
+            }
         },
         containerColor = bg
     ) { innerPadding ->
@@ -370,7 +422,7 @@ fun MainMenuScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // Imagen de fondo (la del login)
+            // Fondo con la MISMA imagen del login
             Image(
                 painter = painterResource(id = R.drawable.login_bg),
                 contentDescription = null,
@@ -378,37 +430,21 @@ fun MainMenuScreen(
                 modifier = Modifier.matchParentSize()
             )
 
-            // Overlay oscuro para legibilidad
+            // Overlay oscuro
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(Color.Black.copy(alpha = 0.65f))
             )
 
-            // Contenido del menú
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 18.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.height(18.dp))
 
-                // 🔽 AQUÍ VA TODO TU CONTENIDO
-                // Botón Cápsulas
-                // Spacer
-                // Row Perfil / Ajustes
-            }
-        }
-
-        Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Pequeño empuje para que no quede "flotando" en medio
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // ---------------- BOTÓN PRINCIPAL: CÁPSULAS ----------------
+                // -------- BOTÓN PRINCIPAL --------
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -425,7 +461,7 @@ fun MainMenuScreen(
                     ) {
                         Text(
                             text = "Cápsulas",
-                            color = gold,
+                            color = textPrimary,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -434,7 +470,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(26.dp))
 
-                // ---------------- DOS BOTONES SECUNDARIOS ----------------
+                // -------- BOTONES SECUNDARIOS --------
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(26.dp)
@@ -445,6 +481,7 @@ fun MainMenuScreen(
                         onClick = onGoToProfile,
                         modifier = Modifier.weight(1f),
                         gold = gold,
+                        textPrimary = textPrimary,
                         cardBg = cardBg
                     )
                     GoldImageCardButton(
@@ -453,14 +490,15 @@ fun MainMenuScreen(
                         onClick = onGoToSettings,
                         modifier = Modifier.weight(1f),
                         gold = gold,
+                        textPrimary = textPrimary,
                         cardBg = cardBg
                     )
                 }
-
-                Spacer(modifier = Modifier.height(18.dp))
             }
         }
     }
+}
+
 
 @Composable
 private fun GoldImageCardButton(
@@ -469,6 +507,7 @@ private fun GoldImageCardButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     gold: Color,
+    textPrimary: Color,   // 👈 nuevo
     cardBg: Color
 ) {
     Surface(
@@ -497,15 +536,13 @@ private fun GoldImageCardButton(
 
             Text(
                 text = label,
-                color = gold,
+                color = textPrimary,          // 👈 blanco roto
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium
             )
         }
     }
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

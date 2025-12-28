@@ -21,19 +21,30 @@ class AuthViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // ✅ Mensajes de éxito para enseñar Snackbars / Toasts
+    private val _success = MutableStateFlow<String?>(null)
+    val success: StateFlow<String?> = _success
+
     init {
         repository.addAuthListener { auth ->
             _user.value = auth.currentUser
         }
     }
 
+    fun clearMessages() {
+        _error.value = null
+        _success.value = null
+    }
+
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+            _success.value = null
 
             try {
                 repository.signIn(email, password)
+                _success.value = "Sesión iniciada"
             } catch (e: Exception) {
                 _error.value = e.localizedMessage
             } finally {
@@ -46,9 +57,11 @@ class AuthViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+            _success.value = null
 
             try {
                 repository.signUp(name, email, password)
+                _success.value = "Cuenta creada"
             } catch (e: Exception) {
                 _error.value = e.localizedMessage
             } finally {
@@ -60,5 +73,75 @@ class AuthViewModel(
     fun signOut() {
         repository.signOut()
         _error.value = null
+        _success.value = null
+    }
+
+    // =========================
+    // ✅ PERFIL / CUENTA
+    // =========================
+
+    fun updateDisplayName(newName: String, currentPassword: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            _success.value = null
+
+            try {
+                if (newName.isBlank()) throw IllegalArgumentException("El nombre no puede estar vacío")
+                if (currentPassword.isBlank()) throw IllegalArgumentException("Introduce tu contraseña actual")
+
+                repository.reauthenticate(currentPassword)
+                repository.updateDisplayName(newName)
+
+                _success.value = "Nombre actualizado"
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Error al actualizar nombre"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updatePassword(currentPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            _success.value = null
+
+            try {
+                if (currentPassword.isBlank()) throw IllegalArgumentException("Introduce tu contraseña actual")
+                if (newPassword.length < 6) throw IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres")
+
+                repository.reauthenticate(currentPassword)
+                repository.updatePassword(newPassword)
+
+                _success.value = "Contraseña actualizada"
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Error al actualizar contraseña"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteAccount(currentPassword: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            _success.value = null
+
+            try {
+                if (currentPassword.isBlank()) throw IllegalArgumentException("Introduce tu contraseña actual")
+
+                repository.reauthenticate(currentPassword)
+                repository.deleteAccount()
+
+                _success.value = "Cuenta eliminada"
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Error al eliminar la cuenta"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }
