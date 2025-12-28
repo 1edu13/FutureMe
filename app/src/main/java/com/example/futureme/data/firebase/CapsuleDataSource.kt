@@ -42,6 +42,8 @@ class CapsuleDataSource(
         val openDate = doc.getTimestamp("openDate") ?: Timestamp.now()
         val editDeadline = doc.getTimestamp("editDeadline") ?: openDate
         val isShared = doc.getBoolean("isShared") ?: false
+        val inviteCode = doc.getString("inviteCode") ?: ""
+
 
         return Capsule(
             id = doc.id,
@@ -52,6 +54,7 @@ class CapsuleDataSource(
             openDate = openDate,
             editDeadline = editDeadline,
             isShared = isShared,
+            inviteCode = inviteCode,
             status = doc.getString("status") ?: "",
             images = doc.get("images") as? List<String> ?: emptyList(),
             contributions = (doc.get("contributions") as? Map<String, Map<String, Any>>) ?: emptyMap()
@@ -82,42 +85,46 @@ class CapsuleDataSource(
             .await()
     }
 
-    suspend fun joinCapsule(capsuleId: String, userId: String) {
-        val docRef = db.collection("capsules").document(capsuleId)
-        val snapshot = docRef.get().await()
+    suspend fun joinCapsule(inviteCode: String, userId: String): Capsule {
+        val db = FirebaseFirestore.getInstance()
 
-        if (!snapshot.exists()) {
-            throw Exception("No se encontró ninguna cápsula con este código.")
+        // 1) Buscar cápsula por inviteCode
+        val querySnap = db.collection("capsules")
+            .whereEqualTo("inviteCode", inviteCode.trim().uppercase())
+            .limit(1)
+            .get()
+            .await()
+
+        if (querySnap.isEmpty) {
+            throw Exception("Código inválido")
         }
 
-        // 1) Comprobar si ya está unido
-        val participants = snapshot.get("participantIds") as? List<*>
-        if (participants != null && participants.contains(userId)) {
-            throw Exception("Ya estás unido a esta cápsula.")
-        }
+        val capsuleDoc = querySnap.documents.first()
+        val capsuleId = capsuleDoc.id
 
-        // 2) Regla nueva: no se puede unir si ya pasó el editDeadline
-        val editDeadline = snapshot.getTimestamp("editDeadline")
-            ?: throw Exception("La cápsula no tiene editDeadline definido.")
+        // 2) A partir de aquí, sigues como antes pero usando capsuleId REAL
+        //    (añadir al array members, o contributions, o lo que estés haciendo)
+        // 2) Unirse de verdad (tu esquema usa participantIds)
+        db.collection("capsules")
+            .document(capsuleId)
+            .update("participantIds", FieldValue.arrayUnion(userId))
+            .await()
 
-        if (java.util.Date() >= editDeadline.toDate()) {
-            throw Exception("El plazo para unirse a esta cápsula ya ha terminado.")
-        }
-
-        // 3) Contribution vacía para el nuevo participante
-        val emptyContribution = mapOf(
+        val contributionData = mapOf(
             "text" to "",
             "images" to emptyList<String>()
         )
 
-        // 4) Actualizamos participantIds y creamos su contribution
-        // (NO tocamos openDate ni editDeadline)
-        docRef.update(
-            mapOf(
-                "participantIds" to FieldValue.arrayUnion(userId),
-                "contributions.$userId" to emptyContribution
-            )
-        ).await()
+        db.collection("capsules")
+            .document(capsuleId)
+            .update("contributions.$userId", contributionData)
+            .await()
+
+
+        // 3) Devuelve la cápsula actualizada (si tu código lo requiere)
+        val updated = db.collection("capsules").document(capsuleId).get().await()
+        return mapDocumentToCapsule(updated)
     }
+
 
 }

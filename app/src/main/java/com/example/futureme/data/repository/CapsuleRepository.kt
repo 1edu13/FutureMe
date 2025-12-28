@@ -4,6 +4,7 @@ import com.example.futureme.data.firebase.CapsuleDataSource
 import com.example.futureme.data.model.Capsule
 import com.google.firebase.Timestamp
 import java.util.Calendar
+import java.util.UUID
 
 class CapsuleRepository(
     private val dataSource: CapsuleDataSource = CapsuleDataSource()
@@ -21,7 +22,7 @@ class CapsuleRepository(
         userId: String,
         title: String,
         text: String,
-        isShared: Boolean,          // ✅ NUEVO
+        isShared: Boolean,
         editDeadline: Calendar,
         openDateTime: Calendar,
         imageUrls: List<String>
@@ -34,12 +35,19 @@ class CapsuleRepository(
             openCal.timeInMillis = deadlineCal.timeInMillis
             // opcional: openCal.add(Calendar.MINUTE, 1)
         }
+        val inviteCode = UUID.randomUUID()
+            .toString()
+            .replace("-", "")
+            .take(6)
+            .uppercase()
+
 
         val capsuleData = hashMapOf(
             "creatorId" to userId,
             "ownerId" to userId,
             "title" to title,
             "isShared" to isShared,
+            "inviteCode" to inviteCode,
             "createdAt" to Timestamp.now(),
             "editDeadline" to Timestamp(deadlineCal.time),
             "openDate" to Timestamp(openCal.time),
@@ -66,7 +74,7 @@ class CapsuleRepository(
         dataSource.updateContribution(capsuleId, userId, text, imageUrls)
     }
 
-    suspend fun joinCapsule(capsuleId: String, userId: String) {
-        dataSource.joinCapsule(capsuleId, userId)
+    suspend fun joinCapsule(inviteCode: String, userId: String): Capsule {
+        return dataSource.joinCapsule(inviteCode, userId)
     }
 }

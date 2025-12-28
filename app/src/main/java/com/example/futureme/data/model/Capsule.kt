@@ -13,6 +13,7 @@ data class Capsule(
     // Nueva fecha límite para dejar de aceptar contribuciones
     val editDeadline: Timestamp = Timestamp.now(),
     val isShared: Boolean = false,
+    val inviteCode: String = "",
     val status: String = "",
     val images: List<String> = emptyList(),
     val contributions: Map<String, Map<String, Any>> = emptyMap()

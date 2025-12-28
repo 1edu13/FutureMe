@@ -1,5 +1,6 @@
 package com.example.futureme.ui.capsule
 
+import android.content.ClipData
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
@@ -134,7 +135,7 @@ fun CapsuleDetailContent(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = capsule.id,
+                        text = capsule.inviteCode,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
@@ -142,7 +143,10 @@ fun CapsuleDetailContent(
                     Button(onClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
                                 as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Código cápsula", capsule.id)
+                        val clip = ClipData.newPlainText(
+                            "Código cápsula",
+                            capsule.inviteCode   // ✅ AHORA ES EL REAL
+                        )
                         clipboard.setPrimaryClip(clip)
                         Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
                     }) {
