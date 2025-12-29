@@ -55,6 +55,7 @@ import com.example.futureme.ui.theme.FutureMeTheme
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.futureme.ui.capsule.HomeCapsuleScreen
 import com.example.futureme.ui.onboarding.OnboardingScreen
 import com.example.futureme.ui.settings.SettingsScreen
 
@@ -213,7 +214,7 @@ private fun AppNavContent(
 
         // HOME (Mis cápsulas)
         composable(Screen.Home.route) {
-            HomeScreen(
+            HomeCapsuleScreen (
                 userId = userId,
                 onMenuClick = onOpenDrawer,
                 capsuleViewModel = capsuleViewModel,
@@ -592,170 +593,9 @@ private fun GoldImageCardButton(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeScreen(
-    userId: String?,
-    onMenuClick: (() -> Unit)?,
-    capsuleViewModel: CapsuleViewModel,
-    onCapsuleClick: (Capsule) -> Unit,
-    onNavigateToCreate: () -> Unit,
-    onJoinCapsule: () -> Unit
-) {
-    val capsules by capsuleViewModel.capsules.collectAsState()
-    val isLoading by capsuleViewModel.isLoading.collectAsState()
-    val error by capsuleViewModel.error.collectAsState()
 
-    LaunchedEffect(userId) {
-        if (userId != null) capsuleViewModel.loadCapsules()
-    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Mis Cápsulas") },
-                navigationIcon = {
-                    if (onMenuClick != null) {
-                        IconButton(onClick = onMenuClick) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú")
-                        }
-                    } else {
-                        IconButton(onClick = { /* no-op */ }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        }
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreate) {
-                Icon(Icons.Default.Add, contentDescription = "Crear nueva cápsula")
-            }
-        }
-    ) { innerPadding ->
 
-        if (userId == null) {
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return@Scaffold
-        }
-
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-
-            Button(
-                onClick = onJoinCapsule,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Unirse a cápsula")
-            }
-
-            if (isLoading && capsules.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            error?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
-            }
-
-            if (capsules.isEmpty() && !isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Aún no tienes cápsulas. ¡Crea una!")
-                }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(capsules) { capsule ->
-                        CapsuleItem(capsule = capsule) { onCapsuleClick(capsule) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CapsuleItem(capsule: Capsule, onClick: () -> Unit) {
-    val isOpenable = capsule.isOpenable()
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClick = onClick)
-            .alpha(if (isOpenable) 1f else 0.6f),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = capsule.title, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = capsule.text,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            val openDate = capsule.openDate.toDate()
-            Text(
-                text = if (isOpenable) "¡Ya se puede abrir!" else "Se abre el: ${
-                    DateFormat.getDateInstance(DateFormat.MEDIUM).format(openDate)
-                }",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isOpenable) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProfileScreen(
-    userEmail: String,
-    onNavigateBack: () -> Unit
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Perfil") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(text = "Email:", style = MaterialTheme.typography.labelLarge)
-            Text(text = userEmail, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = "Aquí luego podemos añadir nombre, foto, etc.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
 
 
 
