@@ -23,6 +23,10 @@ class AuthViewModel(
 
     // ✅ Mensajes de éxito para enseñar Snackbars / Toasts
     private val _success = MutableStateFlow<String?>(null)
+
+    private val _onboardingCompleted = MutableStateFlow(true)
+    val onboardingCompleted: StateFlow<Boolean> = _onboardingCompleted
+
     val success: StateFlow<String?> = _success
 
     init {
@@ -144,4 +148,47 @@ class AuthViewModel(
             }
         }
     }
+
+    fun loadOnboardingState() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                _onboardingCompleted.value = repository.isOnboardingCompleted()
+            } catch (e: Exception) {
+                // Si falla, mejor no bloquear al usuario
+                _onboardingCompleted.value = true
+                _error.value = e.localizedMessage ?: "Error cargando onboarding"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun completeOnboarding(onDone: () -> Unit) {
+        viewModelScope.launch {
+            _onboardingCompleted.value = true   // ✅ evita el “rebote”
+            try {
+                repository.setOnboardingCompleted(true) // guardado real
+            } catch (_: Exception) {
+                // no crashear
+            } finally {
+                onDone()
+            }
+        }
+    }
+
+    fun resetOnboarding() {
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.setOnboardingCompleted(false)
+                _onboardingCompleted.value = false
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Error reseteando onboarding"
+            }
+        }
+    }
+
+
 }

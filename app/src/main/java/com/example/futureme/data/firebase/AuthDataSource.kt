@@ -26,7 +26,8 @@ class AuthDataSource(
         val userProfile = hashMapOf(
             "name" to name,
             "email" to email,
-            "createdAt" to FieldValue.serverTimestamp()
+            "createdAt" to FieldValue.serverTimestamp(),
+            "onboardingCompleted" to false
         )
 
         db.collection("users").document(uid).set(userProfile).await()
@@ -69,6 +70,16 @@ class AuthDataSource(
     suspend fun deleteUserProfile(uid: String) {
         db.collection("users").document(uid).delete().await()
     }
+
+    suspend fun isOnboardingCompleted(uid: String): Boolean {
+        val snap = db.collection("users").document(uid).get().await()
+        return snap.getBoolean("onboardingCompleted") ?: false
+    }
+
+    suspend fun setOnboardingCompleted(uid: String, completed: Boolean) {
+        db.collection("users").document(uid).update("onboardingCompleted", completed).await()
+    }
+
 }
 
 

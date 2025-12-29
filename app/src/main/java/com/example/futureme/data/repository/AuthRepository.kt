@@ -87,4 +87,15 @@ class AuthRepository(
         dataSource.signOut()
     }
 
+    suspend fun isOnboardingCompleted(): Boolean {
+        val user = dataSource.currentUser() ?: throw IllegalStateException("No hay usuario autenticado")
+        return dataSource.isOnboardingCompleted(user.uid)
+    }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        val user = dataSource.currentUser() ?: throw IllegalStateException("No hay usuario autenticado")
+        dataSource.setOnboardingCompleted(user.uid, completed)
+    }
+
+
 }

@@ -6,6 +6,7 @@ package com.example.futureme.ui.navigation
  */
 sealed class Screen(val route: String) {
     object Login : Screen("login_screen")
+    object Onboarding : Screen(route = "onboarding_screen")
     object MainMenu : Screen("main_menu_screen") // ✅ NUEVA
     object Home : Screen("home_screen")
     object CreateCapsule : Screen("create_capsule_screen")

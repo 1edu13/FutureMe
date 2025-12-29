@@ -55,6 +55,8 @@ import com.example.futureme.ui.theme.FutureMeTheme
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.futureme.ui.onboarding.OnboardingScreen
+import com.example.futureme.ui.settings.SettingsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -82,6 +84,9 @@ fun AppNavHost(
     val navController = rememberNavController()
     val user by authViewModel.user.collectAsState()
 
+    // ✅ Estado onboarding (Firestore)
+    val onboardingCompleted by authViewModel.onboardingCompleted.collectAsState()
+
     // Saber en qué ruta estamos
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -99,8 +104,31 @@ fun AppNavHost(
         }
     }
 
-    // ✅ Solo mostramos drawer si NO estamos en login y hay usuario
-    val showDrawer = user != null && currentRoute != Screen.Login.route
+    // ✅ Cuando hay usuario, cargamos onboardingCompleted desde Firestore
+    LaunchedEffect(user) {
+        if (user != null) {
+            authViewModel.loadOnboardingState()
+        }
+    }
+
+    // ✅ Si NO ha completado onboarding -> vamos a Onboarding (solo si no estamos ya ahí)
+    LaunchedEffect(user, onboardingCompleted, currentRoute) {
+        if (
+            user != null &&
+            onboardingCompleted == false &&
+            currentRoute != Screen.Onboarding.route
+        ) {
+            navController.navigate(Screen.Onboarding.route) {
+                launchSingleTop = true
+            }
+        }
+    }
+
+    // ✅ Solo mostramos drawer si NO estamos en login NI onboarding y hay usuario
+    val showDrawer =
+        user != null &&
+                currentRoute != Screen.Login.route &&
+                currentRoute != Screen.Onboarding.route
 
     if (showDrawer) {
         ModalNavigationDrawer(
@@ -131,7 +159,7 @@ fun AppNavHost(
             )
         }
     } else {
-        // Sin drawer (login)
+        // Sin drawer (login / onboarding)
         AppNavContent(
             navController = navController,
             authViewModel = authViewModel,
@@ -160,6 +188,19 @@ private fun AppNavContent(
             LoginScreen(authViewModel = authViewModel)
         }
 
+        // ✅ ONBOARDING (popups/tutorial)
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onFinish = {
+                    authViewModel.completeOnboarding {
+                        navController.navigate(Screen.MainMenu.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
 
         composable(Screen.MainMenu.route) {
             MainMenuScreen(
@@ -169,7 +210,6 @@ private fun AppNavContent(
                 onGoToSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
-
 
         // HOME (Mis cápsulas)
         composable(Screen.Home.route) {
@@ -218,9 +258,17 @@ private fun AppNavContent(
             )
         }
 
-        // AJUSTES
+        // AJUSTES (con relanzar tutorial)
         composable(Screen.Settings.route) {
-            SettingsScreen(onNavigateBack = { navController.popBackStack() })
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onShowTutorialAgain = {
+                    authViewModel.resetOnboarding()
+                    navController.navigate(Screen.Onboarding.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
 
         // DETALLES DE CÁPSULA
@@ -709,34 +757,5 @@ fun ProfileScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsScreen(onNavigateBack: () -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Ajustes") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize()
-        ) {
-            Text("Ajustes (placeholder)", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Aquí luego podemos añadir cosas como tema, about, etc.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
+
+
