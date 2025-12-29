@@ -7,16 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Link
@@ -34,8 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -43,7 +37,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.futureme.data.model.Capsule
 import com.example.futureme.ui.auth.AuthViewModel
 import com.example.futureme.ui.auth.LoginScreen
 import com.example.futureme.ui.capsule.CapsuleDetailScreen
@@ -53,11 +46,13 @@ import com.example.futureme.ui.capsule.JoinCapsuleScreen
 import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.FutureMeTheme
 import kotlinx.coroutines.launch
-import java.text.DateFormat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.futureme.ui.capsule.HomeCapsuleScreen
 import com.example.futureme.ui.onboarding.OnboardingScreen
 import com.example.futureme.ui.settings.SettingsScreen
+import com.example.futureme.ui.theme.ThemeViewModel
+import com.example.futureme.ui.theme.ThemeViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -70,10 +65,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            FutureMeTheme {
-                AppNavHost(authViewModel = authViewModel, capsuleViewModel = capsuleViewModel)
+            val context = LocalContext.current
+            val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
+            val isDark by themeVm.isDark.collectAsState()
+
+            FutureMeTheme(darkTheme = isDark) {
+                AppNavHost(
+                    authViewModel = authViewModel,
+                    capsuleViewModel = capsuleViewModel
+                )
             }
         }
+
     }
 }
 
@@ -186,7 +189,15 @@ private fun AppNavContent(
 
         // LOGIN
         composable(Screen.Login.route) {
-            LoginScreen(authViewModel = authViewModel)
+
+            val context = LocalContext.current
+            val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
+            val isDark by themeVm.isDark.collectAsState()
+
+            LoginScreen(
+                authViewModel = authViewModel,
+                isDark = isDark
+            )
         }
 
         // ✅ ONBOARDING (popups/tutorial)
@@ -261,13 +272,18 @@ private fun AppNavContent(
 
         // AJUSTES (con relanzar tutorial)
         composable(Screen.Settings.route) {
+
+            val context = LocalContext.current
+            val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
+            val isDark by themeVm.isDark.collectAsState()
+
             SettingsScreen(
+                isDark = isDark,
+                onToggleTheme = { themeVm.setDark(it) },
                 onNavigateBack = { navController.popBackStack() },
                 onShowTutorialAgain = {
                     authViewModel.resetOnboarding()
-                    navController.navigate(Screen.Onboarding.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Screen.Onboarding.route) { launchSingleTop = true }
                 }
             )
         }
@@ -473,7 +489,7 @@ fun MainMenuScreen(
         ) {
             // Fondo con la MISMA imagen del login
             Image(
-                painter = painterResource(id = R.drawable.login_bg),
+                painter = painterResource(id = R.drawable.login_bg_dark),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()

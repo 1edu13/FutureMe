@@ -203,7 +203,7 @@ fun CreateCapsuleScreenContent(
         ) {
             // Fondo como el login (si lo tienes)
             Image(
-                painter = painterResource(id = R.drawable.login_bg),
+                painter = painterResource(id = R.drawable.login_bg_dark),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
