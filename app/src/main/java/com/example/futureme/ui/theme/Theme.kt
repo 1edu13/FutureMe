@@ -35,18 +35,12 @@ private val DarkColorScheme = darkColorScheme(
 // ─────────────────────────────
 private val LightColorScheme = lightColorScheme(
     primary = OroAmbar,
-    secondary = Color(0xFFFFD54F),
-    tertiary = Color(0xFFFFECB3),
-
+    onPrimary = Color.White,
     background = ClaroBase,
-    surface = ClaroBase.copy(alpha = 0.85f),
-
-    onPrimary = AzulProfundo,
-    onSecondary = AzulProfundo,
-    onTertiary = AzulProfundo,
-
-    onBackground = AzulProfundo,
-    onSurface = AzulProfundo
+    surface = ClaroSuave,           // Las tarjetas usarán el color Arena
+    onBackground = TextoCafe,       // El texto será Café oscuro
+    onSurface = TextoCafe,
+    outline = ClaroBorde            // Bordes nítidos
 )
 
 @Composable

@@ -1,6 +1,7 @@
 package com.example.futureme.ui.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,11 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.futureme.ui.theme.AppBackground
-import com.example.futureme.ui.theme.BackgroundType
+import androidx.compose.ui.unit.sp
+import com.example.futureme.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,189 +30,136 @@ fun SettingsScreen(
     onShowTutorialAgain: () -> Unit,
     onLanguageClick: (() -> Unit)? = null
 ) {
-    val gold = Color(0xFFFFC107)       // OroAmbar
-    val titleGold = Color(0xFFFFD54F)
+    // 🎨 USANDO TU PALETA DE COLOR.KT
+    val gold = OroAmbar
+    val titleGold = if (isDark) gold else AzulProfundo
+    val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
+    val textSecondary = if (isDark) GrisAzulado else ClaroBorde
 
-    val textPrimary = if (isDark) Color(0xFFE3F2FD) else Color(0xFF0A1929)
-    val textSecondary = textPrimary.copy(alpha = 0.75f)
-
-    val cardBg = if (isDark) {
-        Color(0xFF132F4C).copy(alpha = 0.18f)
+    // --- EFECTO SEDA/CRISTAL PREMIUM PARA EL CUADRO ---
+    val cardBrush = if (isDark) {
+        Brush.verticalGradient(listOf(AzulSuperficie, AzulProfundo))
     } else {
-        Color(0xFFF4F8FC).copy(alpha = 0.72f)
+        // Combinamos tus colores: Base -> Suave -> Principal para evitar el blanco nuclear
+        Brush.verticalGradient(listOf(ClaroBase, ClaroSuave, ClaroPrincipal))
     }
 
-    val toolbarBg = if (isDark) Color(0xFF0A1929).copy(alpha = 0.55f) else Color(0xFFF4F8FC).copy(alpha = 0.55f)
-
-    var showAboutDialog by remember { mutableStateOf(false) }
+    val cardBorder = if (isDark) gold.copy(alpha = 0.3f) else ClaroBorde.copy(alpha = 0.8f)
 
     AppBackground(type = BackgroundType.GRADIENT, isDark = isDark) {
-
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                Column {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "Ajustes",
-                                color = titleGold,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateBack) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Volver",
-                                    tint = gold
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = toolbarBg,
-                            titleContentColor = titleGold,
-                            navigationIconContentColor = gold,
-                            actionIconContentColor = gold
+                TopAppBar(
+                    title = {
+                        Text(
+                            "AJUSTES",
+                            color = gold,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
                         )
-                    )
-                    Divider(color = gold.copy(alpha = 0.18f), thickness = 1.dp)
-                }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = gold)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
             }
         ) { innerPadding ->
-
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .padding(horizontal = 20.dp)
             ) {
+                Spacer(Modifier.height(12.dp))
 
-                SectionCard(
-                    title = "General",
-                    titleColor = titleGold,
-                    cardBg = cardBg,
-                    border = gold.copy(alpha = 0.20f)
+                // Cuadro principal de Ajustes con el nuevo diseño
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.5.dp, cardBorder),
+                    shadowElevation = if (isDark) 8.dp else 4.dp
                 ) {
-                    SettingRow(
-                        icon = { Icon(Icons.Default.Language, contentDescription = null, tint = gold) },
-                        title = "Idioma",
-                        subtitle = "Pendiente (se añadirá más adelante)",
-                        textPrimary = textPrimary,
-                        textSecondary = textSecondary,
-                        onClick = { onLanguageClick?.invoke() }
-                    )
+                    Column(
+                        modifier = Modifier
+                            .background(cardBrush) // Aplicamos el degradado premium
+                            .padding(20.dp)
+                    ) {
+                        Text(
+                            text = "Apariencia",
+                            color = gold,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
 
-                    Divider(color = gold.copy(alpha = 0.10f), thickness = 1.dp)
+                        Spacer(Modifier.height(16.dp))
 
-                    ThemeRow(
-                        icon = { Icon(Icons.Default.Palette, contentDescription = null, tint = gold) },
-                        title = "Modo oscuro",
-                        subtitle = if (isDark) "Activado" else "Desactivado",
-                        checked = isDark,
-                        textPrimary = textPrimary,
-                        textSecondary = textSecondary,
-                        onCheckedChange = onToggleTheme
-                    )
-                }
+                        ThemeRow(
+                            icon = { Icon(Icons.Default.Palette, contentDescription = null, tint = gold) },
+                            title = "Modo Oscuro",
+                            subtitle = "Cambia el estilo visual de la app",
+                            checked = isDark,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            onCheckedChange = onToggleTheme
+                        )
 
-                SectionCard(
-                    title = "FutureMe",
-                    titleColor = titleGold,
-                    cardBg = cardBg,
-                    border = gold.copy(alpha = 0.20f)
-                ) {
-                    SettingRow(
-                        icon = { Icon(Icons.Default.Info, contentDescription = null, tint = gold) },
-                        title = "Sobre FutureMe",
-                        subtitle = "Qué es la app y cómo funciona",
-                        textPrimary = textPrimary,
-                        textSecondary = textSecondary,
-                        onClick = { showAboutDialog = true }
-                    )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = gold.copy(alpha = 0.15f)
+                        )
 
-                    Divider(color = gold.copy(alpha = 0.10f), thickness = 1.dp)
+                        SettingRow(
+                            icon = { Icon(Icons.Default.Language, contentDescription = null, tint = gold) },
+                            title = "Idioma",
+                            subtitle = "Español (predeterminado)",
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            onClick = { onLanguageClick?.invoke() }
+                        )
 
-                    SettingRow(
-                        icon = { Icon(Icons.Default.PlayCircle, contentDescription = null, tint = gold) },
-                        title = "Ver tutorial otra vez",
-                        subtitle = "Vuelve a mostrar los popups de bienvenida",
-                        textPrimary = textPrimary,
-                        textSecondary = textSecondary,
-                        onClick = onShowTutorialAgain
-                    )
+                        Spacer(Modifier.height(24.dp))
+
+                        Text(
+                            text = "Ayuda y Soporte",
+                            color = gold,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        SettingRow(
+                            icon = { Icon(Icons.Default.PlayCircle, contentDescription = null, tint = gold) },
+                            title = "¿Qué es FutureMe?",
+                            subtitle = "Breve explicación",
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            onClick = onShowTutorialAgain
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = gold.copy(alpha = 0.15f)
+                        )
+
+                        SettingRow(
+                            icon = { Icon(Icons.Default.Info, contentDescription = null, tint = gold) },
+                            title = "Versión",
+                            subtitle = "1.0.0 (Build 2025)",
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            onClick = {}
+                        )
+                    }
                 }
             }
         }
-
-        if (showAboutDialog) {
-            AlertDialog(
-                onDismissRequest = { showAboutDialog = false },
-                containerColor = if (isDark) Color(0xFF0A1929) else Color(0xFFF4F8FC),
-                title = {
-                    Text(
-                        text = "Sobre FutureMe",
-                        color = titleGold,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "FutureMe es una app de cápsulas del tiempo: escribes un mensaje hoy y lo abres en una fecha futura.",
-                            color = textPrimary
-                        )
-                        Text(
-                            text = "Puedes crear cápsulas privadas o compartidas y recibir avisos cuando se abran.",
-                            color = textSecondary
-                        )
-                        Text(
-                            text = "Este tutorial se puede volver a ver desde Ajustes.",
-                            color = textSecondary
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showAboutDialog = false }) {
-                        Text("Cerrar", color = gold, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionCard(
-    title: String,
-    titleColor: Color,
-    cardBg: Color,
-    border: Color,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = cardBg,
-        shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, border)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            content = {
-                Text(
-                    text = title,
-                    color = titleColor,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                content()
-            }
-        )
     }
 }
 
@@ -223,17 +172,19 @@ private fun SettingRow(
     textSecondary: Color,
     onClick: () -> Unit
 ) {
-    Surface(onClick = onClick, color = Color.Transparent) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) { icon() }
+            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) { icon() }
             Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
+            Column {
                 Text(
                     text = title,
                     color = textPrimary,
@@ -260,34 +211,36 @@ private fun ThemeRow(
     textSecondary: Color,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Surface(color = Color.Transparent) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) { icon() }
-            Spacer(Modifier.width(12.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) { icon() }
+        Spacer(Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    color = textPrimary,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = subtitle,
-                    color = textSecondary,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                color = textPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = subtitle,
+                color = textSecondary,
+                style = MaterialTheme.typography.bodySmall
             )
         }
+
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = OroAmbar,
+                checkedTrackColor = OroAmbar.copy(alpha = 0.5f)
+            )
+        )
     }
 }

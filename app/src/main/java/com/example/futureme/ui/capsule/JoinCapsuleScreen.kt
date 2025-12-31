@@ -2,11 +2,11 @@ package com.example.futureme.ui.capsule
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Link
@@ -14,25 +14,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.futureme.R
+import com.example.futureme.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinCapsuleScreen(
     capsuleViewModel: CapsuleViewModel,
     onNavigateBack: () -> Unit,
-    onJoined: () -> Unit
+    onJoined: () -> Unit,
+    isDark: Boolean = isSystemInDarkTheme()
 ) {
     val isLoading by capsuleViewModel.isLoading.collectAsState()
     val error by capsuleViewModel.error.collectAsState()
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
-    // Si se une correctamente → navegar
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) onJoined()
     }
@@ -41,7 +40,8 @@ fun JoinCapsuleScreen(
         isLoading = isLoading,
         error = error,
         onJoin = { code -> capsuleViewModel.joinCapsule(code) },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        isDark = isDark
     )
 }
 
@@ -51,32 +51,38 @@ fun JoinCapsuleScreenContent(
     isLoading: Boolean,
     error: String?,
     onJoin: (String) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    isDark: Boolean
 ) {
-    // ---- Paleta ----
-    val gold = Color(0xFFD4AF37)
-    val titleGold = Color(0xFFC9A84D)
-    val textPrimary = Color(0xFFEDEDED)
-    val textSecondary = textPrimary.copy(alpha = 0.75f)
-    val bg = Color(0xFF0B0B0B)
-    val cardBg = Color(0xFF0E0E0E)
-    val toolbarBg = Color(0xFF161616)
+    // 🎨 Paleta igual que Settings (según tu Color.kt)
+    val gold = OroAmbar
+    val titleColor = if (isDark) gold else AzulProfundo
+    val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
+    val textSecondary = if (isDark) GrisAzulado else ClaroBorde
+
+    // Card premium (degradado dentro del “marco”, encima del fondo radial)
+    val cardBrush = if (isDark) {
+        Brush.verticalGradient(listOf(AzulSuperficie, AzulProfundo))
+    } else {
+        Brush.verticalGradient(listOf(ClaroBase, ClaroSuave, ClaroPrincipal))
+    }
+    val cardBorder = if (isDark) gold.copy(alpha = 0.30f) else ClaroBorde.copy(alpha = 0.80f)
 
     var code by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-
     val canJoin = !isLoading && code.trim().isNotBlank()
 
-    Scaffold(
-        containerColor = bg,
-        topBar = {
-            Column {
+    // ✅ SOLO degradado (sin imagen) usando tu AppBackground
+    AppBackground(type = BackgroundType.GRADIENT, isDark = isDark) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            "Unirse a cápsula",
-                            color = titleGold,
-                            fontWeight = FontWeight.SemiBold
+                            text = "UNIRSE A CÁPSULA",
+                            color = gold,
+                            fontWeight = FontWeight.Black
                         )
                     },
                     navigationIcon = {
@@ -89,63 +95,43 @@ fun JoinCapsuleScreenContent(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = toolbarBg,
-                        titleContentColor = titleGold,
+                        containerColor = Color.Transparent,
+                        titleContentColor = gold,
                         navigationIconContentColor = gold
                     )
                 )
-                Divider(color = gold.copy(alpha = 0.20f), thickness = 1.dp)
             }
-        }
-    ) { innerPadding ->
-
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            // Fondo (mismo que login si lo tienes)
-            Image(
-                painter = painterResource(id = R.drawable.login_bg_dark),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
-
-            // Overlay oscuro
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.72f))
-            )
+        ) { innerPadding ->
 
             Column(
                 modifier = Modifier
+                    .padding(innerPadding)
                     .fillMaxSize()
-                    .verticalScroll(scrollState) // ✅ scrolleable
-                    .padding(16.dp),
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(Modifier.height(12.dp))
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    color = cardBg,
-                    shadowElevation = 10.dp,
-                    border = BorderStroke(1.dp, gold.copy(alpha = 0.25f))
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.5.dp, cardBorder),
+                    shadowElevation = if (isDark) 10.dp else 6.dp,
+                    color = Color.Transparent
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                            .background(cardBrush)
+                            .padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
                             text = "Introduce el código",
-                            color = titleGold,
+                            color = gold,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
 
                         Text(
@@ -168,55 +154,72 @@ fun JoinCapsuleScreenContent(
                                 focusedBorderColor = gold,
                                 focusedLabelColor = gold,
                                 cursorColor = gold,
-                                unfocusedBorderColor = gold.copy(alpha = 0.25f),
-                                unfocusedLabelColor = textPrimary.copy(alpha = 0.75f),
+
+                                unfocusedBorderColor = cardBorder.copy(alpha = 0.70f),
+                                unfocusedLabelColor = textSecondary,
+
                                 focusedTextColor = textPrimary,
-                                unfocusedTextColor = textPrimary
+                                unfocusedTextColor = textPrimary,
+
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent
                             )
                         )
+
+                        if (!error.isNullOrBlank()) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.45f)
+                                ),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text(
+                                    text = error,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(4.dp))
+
+                        if (isLoading) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                CircularProgressIndicator(color = gold)
+                            }
+                        } else {
+                            Button(
+                                onClick = { onJoin(code.trim()) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(54.dp),
+                                enabled = canJoin,
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = textPrimary,
+                                    disabledContainerColor = Color.Transparent,
+                                    disabledContentColor = textPrimary.copy(alpha = 0.35f)
+                                ),
+                                border = BorderStroke(
+                                    1.dp,
+                                    gold.copy(alpha = if (canJoin) 0.55f else 0.22f)
+                                )
+                            ) {
+                                Text("Unirme a la cápsula", fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
 
-                // Error bonito
-                if (!error.isNullOrBlank()) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFF1A0E0E),
-                        border = BorderStroke(1.dp, Color(0xFFB24A4A).copy(alpha = 0.55f)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = error,
-                            color = textPrimary,
-                            modifier = Modifier.padding(12.dp),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                if (isLoading) {
-                    CircularProgressIndicator(color = gold)
-                } else {
-                    Button(
-                        onClick = { onJoin(code.trim()) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-                        enabled = canJoin,
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF121212),
-                            contentColor = textPrimary,
-                            disabledContainerColor = Color(0xFF101010),
-                            disabledContentColor = textPrimary.copy(alpha = 0.35f)
-                        ),
-                        border = BorderStroke(1.dp, gold.copy(alpha = if (canJoin) 0.45f else 0.18f))
-                    ) {
-                        Text("Unirme a la cápsula", fontWeight = FontWeight.SemiBold)
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
             }
         }
     }

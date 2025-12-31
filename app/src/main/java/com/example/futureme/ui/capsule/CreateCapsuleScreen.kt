@@ -1,21 +1,21 @@
 package com.example.futureme.ui.capsule
 
 import android.content.Context
-import androidx.compose.ui.graphics.Color
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -24,26 +24,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.futureme.R
+import com.example.futureme.ui.theme.*
+import kotlinx.serialization.builtins.BooleanArraySerializer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCapsuleScreen(
     capsuleViewModel: CapsuleViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    isDark: Boolean
 ) {
     val isLoading by capsuleViewModel.isLoading.collectAsState()
     val error by capsuleViewModel.error.collectAsState()
@@ -67,38 +67,58 @@ fun CreateCapsuleScreen(
                 context = context
             )
         },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        isDark = isDark
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCapsuleScreenContent(
+    isDark: Boolean,
     isLoading: Boolean,
     error: String?,
     onSave: (String, String, Boolean, Calendar, Calendar, List<Uri>, Context) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    // ---- Paleta ----
-    val gold = Color(0xFFD4AF37)
-    val titleGold = Color(0xFFC9A84D)
-    val textPrimary = Color(0xFFEDEDED)
-    val textSecondary = textPrimary.copy(alpha = 0.75f)
-    val bg = Color(0xFF0B0B0B)
-    val cardBg = Color(0xFF0E0E0E)
-    val toolbarBg = Color(0xFF161616)
 
-    // Tema oscuro para dialogs (DatePicker/TimePicker)
-    val darkPickerColors = darkColorScheme(
-        primary = gold,
-        secondary = gold,
-        tertiary = gold,
-        onPrimary = Color.Black,
-        background = Color(0xFF101010),
-        surface = Color(0xFF121212),
-        onSurface = textPrimary,
-        onBackground = textPrimary
-    )
+    val gold = OroAmbar
+    val titleGold = if (isDark) gold else AzulProfundo
+    val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
+    val textSecondary = if (isDark) GrisAzulado else ClaroBorde
+
+    // “Seda/cristal” para cards (igual que Settings)
+    val cardBrush = if (isDark) {
+        Brush.verticalGradient(listOf(AzulSuperficie, AzulProfundo))
+    } else {
+        Brush.verticalGradient(listOf(ClaroBase, ClaroSuave, ClaroPrincipal))
+    }
+    val cardBorder = if (isDark) gold.copy(alpha = 0.30f) else ClaroBorde.copy(alpha = 0.80f)
+
+    // Tema para dialogs (DatePicker/TimePicker) -> mismo comportamiento, solo colores
+    val pickerScheme = if (isDark) {
+        darkColorScheme(
+            primary = gold,
+            secondary = gold,
+            tertiary = gold,
+            onPrimary = Color.Black,
+            background = AzulProfundo,
+            surface = AzulSuperficie,
+            onSurface = textPrimary,
+            onBackground = textPrimary
+        )
+    } else {
+        lightColorScheme(
+            primary = gold,
+            secondary = gold,
+            tertiary = gold,
+            onPrimary = Color.Black,
+            background = ClaroPrincipal,
+            surface = ClaroSuave,
+            onSurface = textPrimary,
+            onBackground = textPrimary
+        )
+    }
 
     val context = LocalContext.current
 
@@ -140,14 +160,13 @@ fun CreateCapsuleScreenContent(
         openDate?.let { dateTimeFormatter.format(it.time) } ?: "Seleccionar apertura"
     }
 
-    // Abrir DatePicker al pulsar el field (deadline)
+    // (Se mantiene tu comportamiento: abrir el datePicker al pulsar)
     val deadlineInteractionSource = remember { MutableInteractionSource() }
     val deadlinePressed by deadlineInteractionSource.collectIsPressedAsState()
     LaunchedEffect(deadlinePressed) {
         if (deadlinePressed) showDeadlineDatePicker = true
     }
 
-    // Abrir DatePicker al pulsar el field (open date)
     val openInteractionSource = remember { MutableInteractionSource() }
     val openPressed by openInteractionSource.collectIsPressedAsState()
     LaunchedEffect(openPressed) {
@@ -163,75 +182,59 @@ fun CreateCapsuleScreenContent(
 
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        containerColor = bg,
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            "Crear cápsula",
-                            color = titleGold,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack, enabled = !isLoading) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = gold
+    // ✅ Fondo: solo degradado (como Settings), sin imagen
+    AppBackground(type = BackgroundType.GRADIENT, isDark = isDark) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                Column {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                "CREAR CÁPSULA",
+                                color = gold,
+                                fontWeight = FontWeight.Black
                             )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = toolbarBg,
-                        titleContentColor = titleGold,
-                        navigationIconContentColor = gold,
-                        actionIconContentColor = gold
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onNavigateBack, enabled = !isLoading) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver",
+                                    tint = gold
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                     )
-                )
-                Divider(color = gold.copy(alpha = 0.20f), thickness = 1.dp)
+                    Divider(color = gold.copy(alpha = 0.18f), thickness = 1.dp)
+                }
             }
-        }
-    ) { innerPadding ->
-
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            // Fondo como el login (si lo tienes)
-            Image(
-                painter = painterResource(id = R.drawable.login_bg_dark),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
-
-            // Overlay oscuro
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.70f))
-            )
+        ) { innerPadding ->
 
             Column(
                 modifier = Modifier
+                    .padding(innerPadding)
                     .fillMaxSize()
-                    .verticalScroll(scrollState)   // ✅ ahora baja sí o sí
+                    .verticalScroll(scrollState)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
 
-                SectionCard(title = "Detalles", gold = gold, titleGold = titleGold, cardBg = cardBg) {
+                SectionCard(
+                    title = "Detalles",
+                    gold = gold,
+                    titleGold = titleGold,
+                    cardBrush = cardBrush,
+                    cardBorder = cardBorder
+                ) {
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
                         label = { Text("Título") },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading,
-                        colors = goldFieldColors(gold, textPrimary)
+                        colors = goldFieldColors(gold, textPrimary, textSecondary)
                     )
 
                     Spacer(Modifier.height(12.dp))
@@ -245,11 +248,17 @@ fun CreateCapsuleScreenContent(
                             .heightIn(min = 140.dp),
                         minLines = 6,
                         enabled = !isLoading,
-                        colors = goldFieldColors(gold, textPrimary)
+                        colors = goldFieldColors(gold, textPrimary, textSecondary)
                     )
                 }
 
-                SectionCard(title = "Privacidad", gold = gold, titleGold = titleGold, cardBg = cardBg) {
+                SectionCard(
+                    title = "Privacidad",
+                    gold = gold,
+                    titleGold = titleGold,
+                    cardBrush = cardBrush,
+                    cardBorder = cardBorder
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -273,9 +282,9 @@ fun CreateCapsuleScreenContent(
                             enabled = !isLoading,
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = gold,
-                                checkedTrackColor = gold.copy(alpha = 0.35f),
+                                checkedTrackColor = gold.copy(alpha = 0.5f),
                                 uncheckedThumbColor = textPrimary.copy(alpha = 0.6f),
-                                uncheckedTrackColor = Color(0xFF1B1B1B)
+                                uncheckedTrackColor = if (isDark) AzulSuperficie else ClaroSuave
                             )
                         )
                     }
@@ -283,15 +292,19 @@ fun CreateCapsuleScreenContent(
                     if (isShared) {
                         Spacer(Modifier.height(12.dp))
                         Surface(
-                            color = Color(0xFF121212),
+                            color = Color.Transparent,
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, gold.copy(alpha = 0.20f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column(Modifier.padding(14.dp)) {
+                            Column(
+                                Modifier
+                                    .background(cardBrush)
+                                    .padding(14.dp)
+                            ) {
                                 Text(
                                     text = "Invitaciones",
-                                    color = titleGold,
+                                    color = gold,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -306,8 +319,13 @@ fun CreateCapsuleScreenContent(
                     }
                 }
 
-                SectionCard(title = "Fechas", gold = gold, titleGold = titleGold, cardBg = cardBg) {
-                    // Tarjeta clickable: Deadline
+                SectionCard(
+                    title = "Fechas",
+                    gold = gold,
+                    titleGold = titleGold,
+                    cardBrush = cardBrush,
+                    cardBorder = cardBorder
+                ) {
                     DateCard(
                         title = "Límite para editar / unirse",
                         value = editDeadlineText,
@@ -315,12 +333,13 @@ fun CreateCapsuleScreenContent(
                         textPrimary = textPrimary,
                         textSecondary = textSecondary,
                         enabled = !isLoading,
+                        cardBrush = cardBrush,
+                        borderColor = gold.copy(alpha = 0.22f),
                         onClick = { showDeadlineDatePicker = true }
                     )
 
                     Spacer(Modifier.height(10.dp))
 
-                    // Tarjeta clickable: Open
                     DateCard(
                         title = "Fecha y hora de apertura",
                         value = openDateText,
@@ -328,11 +347,19 @@ fun CreateCapsuleScreenContent(
                         textPrimary = textPrimary,
                         textSecondary = textSecondary,
                         enabled = !isLoading,
+                        cardBrush = cardBrush,
+                        borderColor = gold.copy(alpha = 0.22f),
                         onClick = { showOpenDatePicker = true }
                     )
                 }
 
-                SectionCard(title = "Imágenes", gold = gold, titleGold = titleGold, cardBg = cardBg) {
+                SectionCard(
+                    title = "Imágenes",
+                    gold = gold,
+                    titleGold = titleGold,
+                    cardBrush = cardBrush,
+                    cardBorder = cardBorder
+                ) {
                     OutlinedButton(
                         onClick = {
                             photoPickerLauncher.launch(
@@ -344,7 +371,7 @@ fun CreateCapsuleScreenContent(
                         border = BorderStroke(1.dp, gold.copy(alpha = 0.35f)),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = textPrimary,
-                            containerColor = Color(0xFF121212)
+                            containerColor = Color.Transparent
                         ),
                         shape = RoundedCornerShape(18.dp)
                     ) {
@@ -360,7 +387,7 @@ fun CreateCapsuleScreenContent(
                                 Surface(
                                     shape = RoundedCornerShape(14.dp),
                                     border = BorderStroke(1.dp, gold.copy(alpha = 0.18f)),
-                                    color = Color(0xFF111111)
+                                    color = Color.Transparent
                                 ) {
                                     AsyncImage(
                                         model = uri,
@@ -384,13 +411,13 @@ fun CreateCapsuleScreenContent(
                 error?.let {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFF1A0E0E),
-                        border = BorderStroke(1.dp, Color(0xFFB24A4A).copy(alpha = 0.55f)),
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.45f)),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(
                             text = it,
-                            color = textPrimary,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(12.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -416,12 +443,12 @@ fun CreateCapsuleScreenContent(
                         enabled = canSave,
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (canSave) Color(0xFF121212) else Color(0xFF101010),
+                            containerColor = Color.Transparent,
                             contentColor = textPrimary,
-                            disabledContainerColor = Color(0xFF101010),
+                            disabledContainerColor = Color.Transparent,
                             disabledContentColor = textPrimary.copy(alpha = 0.35f)
                         ),
-                        border = BorderStroke(1.dp, gold.copy(alpha = if (canSave) 0.45f else 0.18f))
+                        border = BorderStroke(1.dp, gold.copy(alpha = if (canSave) 0.55f else 0.22f))
                     ) {
                         Text("Guardar cápsula", fontWeight = FontWeight.SemiBold)
                     }
@@ -436,7 +463,7 @@ fun CreateCapsuleScreenContent(
     // DEADLINE: DatePicker
     // -------------------------
     if (showDeadlineDatePicker) {
-        MaterialTheme(colorScheme = darkPickerColors) {
+        MaterialTheme(colorScheme = pickerScheme) {
             DatePickerDialog(
                 onDismissRequest = { showDeadlineDatePicker = false },
                 confirmButton = {
@@ -472,19 +499,30 @@ fun CreateCapsuleScreenContent(
 
     // DEADLINE: TimePicker
     if (showDeadlineTimePicker) {
-        MaterialTheme(colorScheme = darkPickerColors) {
+        MaterialTheme(colorScheme = pickerScheme) {
             AlertDialog(
                 onDismissRequest = { showDeadlineTimePicker = false },
-                containerColor = Color(0xFF121212),
-                title = { Text("Selecciona la hora (límite)", color = titleGold, fontWeight = FontWeight.SemiBold) },
+                containerColor = if (isDark) AzulSuperficie else ClaroSuave,
+                title = {
+                    Text(
+                        "Selecciona la hora (límite)",
+                        color = gold,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 text = {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        color = Color(0xFF101010),
+                        color = Color.Transparent,
                         border = BorderStroke(1.dp, gold.copy(alpha = 0.20f))
                     ) {
-                        Box(Modifier.padding(14.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .background(cardBrush)
+                                .padding(14.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             TimePicker(state = deadlineTimePickerState)
                         }
                     }
@@ -515,7 +553,7 @@ fun CreateCapsuleScreenContent(
     // OPEN DATE: DatePicker
     // -------------------------
     if (showOpenDatePicker) {
-        MaterialTheme(colorScheme = darkPickerColors) {
+        MaterialTheme(colorScheme = pickerScheme) {
             DatePickerDialog(
                 onDismissRequest = { showOpenDatePicker = false },
                 confirmButton = {
@@ -551,19 +589,30 @@ fun CreateCapsuleScreenContent(
 
     // OPEN DATE: TimePicker
     if (showOpenTimePicker) {
-        MaterialTheme(colorScheme = darkPickerColors) {
+        MaterialTheme(colorScheme = pickerScheme) {
             AlertDialog(
                 onDismissRequest = { showOpenTimePicker = false },
-                containerColor = Color(0xFF121212),
-                title = { Text("Selecciona la hora (apertura)", color = titleGold, fontWeight = FontWeight.SemiBold) },
+                containerColor = if (isDark) AzulSuperficie else ClaroSuave,
+                title = {
+                    Text(
+                        "Selecciona la hora (apertura)",
+                        color = gold,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 text = {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        color = Color(0xFF101010),
+                        color = Color.Transparent,
                         border = BorderStroke(1.dp, gold.copy(alpha = 0.20f))
                     ) {
-                        Box(Modifier.padding(14.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .background(cardBrush)
+                                .padding(14.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             TimePicker(state = openTimePickerState)
                         }
                     }
@@ -596,19 +645,21 @@ private fun SectionCard(
     title: String,
     gold: Color,
     titleGold: Color,
-    cardBg: Color,
+    cardBrush: Brush,
+    cardBorder: Color,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        color = cardBg,
+        color = Color.Transparent,
         shadowElevation = 10.dp,
-        border = BorderStroke(1.dp, gold.copy(alpha = 0.25f))
+        border = BorderStroke(1.dp, cardBorder)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(cardBrush)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             content = {
@@ -632,6 +683,8 @@ private fun DateCard(
     textPrimary: Color,
     textSecondary: Color,
     enabled: Boolean,
+    cardBrush: Brush,
+    borderColor: Color,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -641,12 +694,13 @@ private fun DateCard(
         interactionSource = interactionSource,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0xFF121212),
-        border = BorderStroke(1.dp, iconTint.copy(alpha = 0.22f))
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(cardBrush)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -667,12 +721,18 @@ private fun DateCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun goldFieldColors(gold: Color, textPrimary: Color) = OutlinedTextFieldDefaults.colors(
+private fun goldFieldColors(
+    gold: Color,
+    textPrimary: Color,
+    textSecondary: Color
+) = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = gold,
     focusedLabelColor = gold,
     cursorColor = gold,
     unfocusedBorderColor = gold.copy(alpha = 0.25f),
-    unfocusedLabelColor = textPrimary.copy(alpha = 0.75f),
+    unfocusedLabelColor = textSecondary,
     focusedTextColor = textPrimary,
-    unfocusedTextColor = textPrimary
+    unfocusedTextColor = textPrimary,
+    focusedContainerColor = Color.Transparent,
+    unfocusedContainerColor = Color.Transparent
 )

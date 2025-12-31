@@ -12,199 +12,144 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.futureme.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
+    isDark: Boolean,
     onFinish: () -> Unit
 ) {
-    val gold = Color(0xFFD4AF37)
-    val titleGold = Color(0xFFC9A84D)
-    val textPrimary = Color(0xFFEDEDED)
-    val textSecondary = textPrimary.copy(alpha = 0.75f)
-    val bg = Color(0xFF0B0B0B)
-    val cardBg = Color(0xFF0E0E0E)
+    // 🎨 REFERENCIAS AL TEMA
+    val gold = MaterialTheme.colorScheme.primary
+    val textPrimary = MaterialTheme.colorScheme.onSurface
+    val textSecondary = textPrimary.copy(alpha = 0.6f)
 
-    // 4 páginas
+    val cardBrush = if (isDark) {
+        Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, AzulProfundo))
+    } else {
+        Brush.verticalGradient(listOf(ClaroBase, ClaroSuave, ClaroPrincipal))
+    }
+
+    // ✅ LÓGICA ORIGINAL INTACTA
     val pages = remember {
         listOf(
-            OnboardingPage(
-                title = "Bienvenido",
-                body = "Bienvenido a FutureMe.\nGuarda mensajes para tu yo del futuro."
-            ),
-            OnboardingPage(
-                title = "La idea",
-                body = "Escribe lo que sientes hoy.\nÁbrelo cuando llegue la fecha."
-            ),
-            OnboardingPage(
-                title = "Crear cápsula",
-                body = "Pon un título, texto e imágenes.\nElige cuándo se abrirá."
-            ),
-            OnboardingPage(
-                title = "Cápsulas compartidas",
-                body = "Invita a amigos a una cápsula.\nLa veréis cuando se abra."
-            )
+            OnboardingPage("BIENVENIDO", "FutureMe guarda mensajes para tu yo del futuro.\nEscribe hoy y ábrelo cuando llegue el momento."),
+            OnboardingPage("LA IDEA", "Captura lo que piensas o sientes ahora.\nCuando se abra, lo verás con perspectiva."),
+            OnboardingPage("CREAR CÁPSULA", "Pon un título, añade texto e imágenes.\nElige una fecha y deja que el tiempo pase."),
+            OnboardingPage("COMPARTIR", "Si una cápsula es compartida, invita a amigos.\nTodos la veréis al mismo tiempo.")
         )
     }
 
     var index by remember { mutableIntStateOf(0) }
     val isLast = index == pages.lastIndex
 
-    Surface(color = bg, modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            // Fondo/Overlay sutil para mantener el estilo
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.35f))
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+    AppBackground(type = BackgroundType.LOGIN_IMAGE, isDark = isDark) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                DotsIndicator(pages.size, index, gold, if(isDark) AzulSuperficie else ClaroPrincipal)
+                TextButton(onClick = onFinish) {
+                    Text("SALTAR", color = gold, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                }
+            }
 
-                // Header (puntos + skip)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            // Card Central Sólida con degradado del Theme
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                shape = RoundedCornerShape(35.dp),
+                border = BorderStroke(1.5.dp, gold.copy(alpha = 0.6f)),
+                shadowElevation = if (isDark) 12.dp else 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.background(cardBrush).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DotsIndicator(
-                        count = pages.size,
-                        selectedIndex = index,
-                        gold = gold
+                    Text(
+                        text = pages[index].title,
+                        color = if (isDark) gold else AzulProfundo,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp
                     )
-
-                    TextButton(
-                        onClick = onFinish,
-                        colors = ButtonDefaults.textButtonColors(contentColor = textSecondary)
-                    ) {
-                        Text("Saltar")
-                    }
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = pages[index].body,
+                        color = textPrimary,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 26.sp,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        text = "${index + 1} / ${pages.size}",
+                        color = textSecondary,
+                        style = MaterialTheme.typography.labelMedium,
+                        letterSpacing = 2.sp
+                    )
                 }
+            }
 
-                // Card central
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 18.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    color = cardBg,
-                    shadowElevation = 10.dp,
-                    border = BorderStroke(1.dp, gold.copy(alpha = 0.25f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = pages[index].title,
-                            color = titleGold,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(Modifier.height(12.dp))
-
-                        Text(
-                            text = pages[index].body,
-                            color = textPrimary,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight
-                        )
-
-                        Spacer(Modifier.height(10.dp))
-
-                        Text(
-                            text = "${index + 1} / ${pages.size}",
-                            color = textSecondary,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-
-                // Controles (atrás / siguiente / empezar)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Atrás
+            // Controles
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (index > 0) {
                     OutlinedButton(
-                        onClick = { if (index > 0) index-- },
-                        enabled = index > 0,
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.dp, gold.copy(alpha = if (index > 0) 0.35f else 0.15f)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = gold
-                        )
+                        onClick = { index-- },
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(1.dp, gold.copy(alpha = 0.5f))
                     ) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Anterior", tint = gold)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Atrás", color = gold, fontWeight = FontWeight.SemiBold)
+                        Text("ATRÁS", color = gold, fontWeight = FontWeight.Bold)
                     }
+                } else {
+                    Spacer(Modifier.width(100.dp))
+                }
 
-                    // Siguiente / Empezar
-                    Button(
-                        onClick = {
-                            if (isLast) onFinish() else index++
-                        },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF121212),
-                            contentColor = textPrimary
-                        ),
-                        border = BorderStroke(1.dp, gold.copy(alpha = 0.35f))
-                    ) {
-                        if (isLast) {
-                            Icon(Icons.Default.Check, contentDescription = "Empezar", tint = gold)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Empezar", fontWeight = FontWeight.SemiBold)
-                        } else {
-                            Text("Siguiente", fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.width(8.dp))
-                            Icon(Icons.Default.ArrowForwardIos, contentDescription = "Siguiente", tint = gold)
-                        }
-                    }
+                Button(
+                    onClick = { if (isLast) onFinish() else index++ },
+                    modifier = Modifier.height(56.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDark) gold else AzulProfundo,
+                        contentColor = if (isDark) AzulProfundo else Color.White
+                    ),
+                    border = BorderStroke(1.2.dp, gold),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
+                ) {
+                    Text(if (isLast) "EMPEZAR" else "SIGUIENTE", fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
     }
 }
 
-private data class OnboardingPage(
-    val title: String,
-    val body: String
-)
+private data class OnboardingPage(val title: String, val body: String)
 
 @Composable
-private fun DotsIndicator(
-    count: Int,
-    selectedIndex: Int,
-    gold: Color
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun DotsIndicator(count: Int, selectedIndex: Int, activeColor: Color, inactiveColor: Color) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         repeat(count) { i ->
-            val isSelected = i == selectedIndex
             Box(
                 modifier = Modifier
-                    .size(if (isSelected) 10.dp else 8.dp)
-                    .background(
-                        color = if (isSelected) gold else gold.copy(alpha = 0.25f),
-                        shape = RoundedCornerShape(50)
-                    )
+                    .size(if (i == selectedIndex) 12.dp else 8.dp)
+                    .background(color = if (i == selectedIndex) activeColor else inactiveColor, shape = RoundedCornerShape(50))
             )
         }
     }
