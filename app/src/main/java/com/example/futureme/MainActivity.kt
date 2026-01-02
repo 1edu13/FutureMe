@@ -239,6 +239,7 @@ private fun AppNavContent(
 
         composable(Screen.Profile.route) {
             com.example.futureme.ui.profile.ProfileScreen(
+                isDark = isDark,
                 authViewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onGoToEditAccount = { navController.navigate(Screen.EditAccount.route) }
@@ -247,6 +248,7 @@ private fun AppNavContent(
 
         composable(Screen.EditAccount.route) {
             com.example.futureme.ui.profile.EditAccountScreen(
+                isDark = isDark,
                 authViewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
