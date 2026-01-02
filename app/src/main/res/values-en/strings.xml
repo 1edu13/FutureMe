@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Future Me</string>
+    <string name="back">Back</string>
+    <string name="accept">Accept</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="save">Save</string>
+    <string name="copy">Copy</string>
+
+    <string name="login_welcome">Welcome Back</string>
+    <string name="login_create_account">Create Your Account</string>
+    <string name="placeholder_name">Name</string>
+    <string name="placeholder_email">Email</string>
+    <string name="placeholder_password">Password</string>
+    <string name="btn_login">Sign In</string>
+    <string name="btn_register">Register</string>
+    <string name="toggle_no_account">Don\'t have an account? </string>
+    <string name="toggle_has_account">Already have an account? </string>
+    <string name="action_register">Sign Up</string>
+    <string name="action_login">Log In</string>
+
+    <string name="home_title">MY CAPSULES</string>
+    <string name="content_desc_menu">Menu</string>
+    <string name="content_desc_create">Create</string>
+    <string name="btn_join_capsule">JOIN CAPSULE</string>
+    <string name="empty_capsules_title">You have no capsules yet</string>
+    <string name="empty_capsules_msg">Press + to create the first one.</string>
+    <string name="capsule_ready">READY TO OPEN!</string>
+    <string name="capsule_wait">Will open soon</string>
+
+    <string name="create_capsule_title">CREATE CAPSULE</string>
+    <string name="lbl_title">Title</string>
+    <string name="lbl_content">Content</string>
+    <string name="section_details">Details</string>
+    <string name="section_privacy">Privacy</string>
+    <string name="lbl_shared_capsule">Shared capsule</string>
+    <string name="desc_shared_capsule">Allows inviting users (when you enable it).</string>
+    <string name="section_invites">Invitations</string>
+    <string name="desc_invites">Will be set up after saving the capsule.</string>
+    <string name="section_dates">Dates</string>
+    <string name="lbl_deadline">Deadline to edit / join</string>
+    <string name="lbl_opening_date">Opening date and time</string>
+    <string name="hint_select_deadline">Select deadline</string>
+    <string name="hint_select_opening">Select opening</string>
+    <string name="section_images">Images</string>
+    <string name="btn_attach_images">Attach images</string>
+    <string name="desc_images_optional">Optional: you can add images to your capsule.</string>
+    <string name="btn_save_capsule">Save capsule</string>
+    <string name="dialog_time_deadline">Select time (deadline)</string>
+    <string name="dialog_time_opening">Select time (opening)</string>
+
+    <string name="join_capsule_title">JOIN CAPSULE</string>
+    <string name="lbl_enter_code">Enter the code</string>
+    <string name="desc_join_code">You will join a shared capsule using its code.</string>
+    <string name="hint_capsule_code">Capsule code</string>
+    <string name="btn_join_action">Join the capsule</string>
+
+    <string name="msg_contribution_saved">Contribution saved!</string>
+    <string name="section_invitation">Invitation</string>
+    <string name="lbl_invite_code">Invitation code</string>
+    <string name="msg_code_copied">Code copied</string>
+    <string name="status_open">Capsule opened</string>
+    <string name="status_closed">Capsule closed</string>
+    <string name="fmt_opens_at">Opens on: %s</string>
+    <string name="section_content">Content</string>
+    <string name="msg_no_contributions">No contributions yet.</string>
+    <string name="role_creator">Creator</string>
+    <string name="role_participant">Participant</string>
+    <string name="lbl_no_images">No images</string>
+    <string name="lbl_no_text">No text</string>
+    <string name="section_your_contribution">Your contribution</string>
+    <string name="fmt_deadline_warning">You have until %s</string>
+    <string name="hint_write_future">Write something for the future...</string>
+    <string name="desc_add_images_too">Optional: add images as well.</string>
+    <string name="btn_save_part">Save my part</string>
+    <string name="msg_period_ended">The contribution period has ended. Now, you just have to wait for it to open.</string>
+
+    <string name="menu_title">MENU</string>
+    <string name="menu_profile">PROFILE</string>
+    <string name="menu_settings">SETTINGS</string>
+    <string name="drawer_menu">Menu</string>
+    <string name="drawer_my_capsules">My capsules</string>
+    <string name="drawer_create">Create capsule</string>
+    <string name="drawer_join">Join capsule</string>
+    <string name="drawer_profile">Profile</string>
+    <string name="drawer_settings">Settings</string>
+    <string name="drawer_logout">Log Out</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="section_account">Account</string>
+    <string name="lbl_no_name">No name</string>
+    <string name="lbl_no_email">No email</string>
+    <string name="section_stats">Statistics</string>
+    <string name="stat_created">Created</string>
+    <string name="stat_opened">Opened</string>
+    <string name="stat_pending">Pending</string>
+    <string name="desc_stats_placeholder">We can connect this to Firestore/capsules later.</string>
+    <string name="section_actions">Actions</string>
+    <string name="btn_edit_account">Edit account</string>
+    <string name="btn_delete_account">Delete account</string>
+    <string name="dialog_delete_title">Delete account</string>
+    <string name="dialog_delete_body">This action is permanent. Enter your current password to confirm.</string>
+    <string name="lbl_current_password">Current password</string>
+    <string name="btn_delete_confirm">Delete</string>
+
+    <string name="edit_account_title">Edit Account</string>
+    <string name="section_change_name">Change name</string>
+    <string name="lbl_new_name">New name</string>
+    <string name="btn_save_name">Save name</string>
+    <string name="desc_change_name">To change account data, we require the current password.</string>
+    <string name="section_change_password">Change password</string>
+    <string name="lbl_new_password">New password (min. 6 characters)</string>
+    <string name="lbl_repeat_password">Repeat new password</string>
+    <string name="btn_save_password">Save password</string>
+    <string name="desc_change_password">Firebase requires re-authentication for sensitive changes.</string>
+    <string name="msg_passwords_mismatch">Passwords do not match</string>
+
+    <string name="settings_title">SETTINGS</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="setting_dark_mode">Dark Mode</string>
+    <string name="setting_dark_mode_desc">Change the visual style of the app</string>
+    <string name="setting_language">Language</string>
+    <string name="setting_language_desc">Spanish (default)</string>
+    <string name="section_help">Help and Support</string>
+    <string name="setting_what_is">What is FutureMe?</string>
+    <string name="setting_what_is_desc">Brief explanation</string>
+    <string name="setting_version">Version</string>
+
+    <string name="onboarding_skip">SKIP</string>
+    <string name="onboarding_back">BACK</string>
+    <string name="onboarding_next">NEXT</string>
+    <string name="onboarding_start">START</string>
+    <string name="onboard_1_title">WELCOME</string>
+    <string name="onboard_1_body">FutureMe saves messages for your future self.\nWrite today and open it when the time comes.</string>
+    <string name="onboard_2_title">THE IDEA</string>
+    <string name="onboard_2_body">Capture what you think or feel right now.\nWhen it opens, you will see it with perspective.</string>
+    <string name="onboard_3_title">CREATE CAPSULE</string>
+    <string name="onboard_3_body">Set a title, add text and images.\nChoose a date and let time pass.</string>
+    <string name="onboard_4_title">SHARE</string>
+    <string name="onboard_4_body">If a capsule is shared, invite friends.\nYou will all see it at the same time.</string>
+</resources>

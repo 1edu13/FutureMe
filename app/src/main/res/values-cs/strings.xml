@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Future Me</string>
+    <string name="back">Zpět</string>
+    <string name="accept">Přijmout</string>
+    <string name="cancel">Zrušit</string>
+    <string name="close">Zavřít</string>
+    <string name="save">Uložit</string>
+    <string name="copy">Kopírovat</string>
+
+    <string name="login_welcome">Vítejte zpět</string>
+    <string name="login_create_account">Vytvořte si účet</string>
+    <string name="placeholder_name">Jméno</string>
+    <string name="placeholder_email">E-mail</string>
+    <string name="placeholder_password">Heslo</string>
+    <string name="btn_login">Přihlásit se</string>
+    <string name="btn_register">Registrovat</string>
+    <string name="toggle_no_account">Nemáte účet? </string>
+    <string name="toggle_has_account">Už máte účet? </string>
+    <string name="action_register">Zaregistrujte se</string>
+    <string name="action_login">Přihlásit se</string>
+
+    <string name="home_title">MOJE KAPSLE</string>
+    <string name="content_desc_menu">Menu</string>
+    <string name="content_desc_create">Vytvořit</string>
+    <string name="btn_join_capsule">PŘIPOJIT SE KE KAPSLI</string>
+    <string name="empty_capsules_title">Zatím nemáte žádné kapsle</string>
+    <string name="empty_capsules_msg">Stiskněte + pro vytvoření první.</string>
+    <string name="capsule_ready">PŘIPRAVENO K OTEVŘENÍ!</string>
+    <string name="capsule_wait">Brzy se otevře</string>
+
+    <string name="create_capsule_title">VYTVOŘIT KAPSULI</string>
+    <string name="lbl_title">Název</string>
+    <string name="lbl_content">Obsah</string>
+    <string name="section_details">Podrobnosti</string>
+    <string name="section_privacy">Soukromí</string>
+    <string name="lbl_shared_capsule">Sdílená kapsle</string>
+    <string name="desc_shared_capsule">Umožňuje pozvat uživatele (až to povolíte).</string>
+    <string name="section_invites">Pozvánky</string>
+    <string name="desc_invites">Bude nastaveno po uložení kapsle.</string>
+    <string name="section_dates">Data</string>
+    <string name="lbl_deadline">Termín pro úpravy / připojení</string>
+    <string name="lbl_opening_date">Datum a čas otevření</string>
+    <string name="hint_select_deadline">Vybrat termín</string>
+    <string name="hint_select_opening">Vybrat otevření</string>
+    <string name="section_images">Obrázky</string>
+    <string name="btn_attach_images">Připojit obrázky</string>
+    <string name="desc_images_optional">Volitelné: ke své kapsli můžete přidat obrázky.</string>
+    <string name="btn_save_capsule">Uložit kapsli</string>
+    <string name="dialog_time_deadline">Vyberte čas (limit)</string>
+    <string name="dialog_time_opening">Vyberte čas (otevření)</string>
+
+    <string name="join_capsule_title">PŘIPOJIT SE KE KAPSLI</string>
+    <string name="lbl_enter_code">Zadejte kód</string>
+    <string name="desc_join_code">Připojíte se ke sdílené kapsli pomocí jejího kódu.</string>
+    <string name="hint_capsule_code">Kód kapsle</string>
+    <string name="btn_join_action">Připojit se ke kapsli</string>
+
+    <string name="msg_contribution_saved">Příspěvek uložen!</string>
+    <string name="section_invitation">Pozvánka</string>
+    <string name="lbl_invite_code">Kód pozvánky</string>
+    <string name="msg_code_copied">Kód zkopírován</string>
+    <string name="status_open">Kapsle otevřena</string>
+    <string name="status_closed">Kapsle uzavřena</string>
+    <string name="fmt_opens_at">Otevírá se: %s</string>
+    <string name="section_content">Obsah</string>
+    <string name="msg_no_contributions">Zatím žádné příspěvky.</string>
+    <string name="role_creator">Tvůrce</string>
+    <string name="role_participant">Účastník</string>
+    <string name="lbl_no_images">Žádné obrázky</string>
+    <string name="lbl_no_text">Žádný text</string>
+    <string name="section_your_contribution">Váš příspěvek</string>
+    <string name="fmt_deadline_warning">Máte čas do %s</string>
+    <string name="hint_write_future">Napište něco pro budoucnost...</string>
+    <string name="desc_add_images_too">Volitelné: přidejte také obrázky.</string>
+    <string name="btn_save_part">Uložit mou část</string>
+    <string name="msg_period_ended">Období pro příspěvky skončilo. Teď už jen zbývá počkat, až se otevře.</string>
+
+    <string name="menu_title">MENU</string>
+    <string name="menu_profile">PROFIL</string>
+    <string name="menu_settings">NASTAVENÍ</string>
+    <string name="drawer_menu">Menu</string>
+    <string name="drawer_my_capsules">Moje kapsle</string>
+    <string name="drawer_create">Vytvořit kapsli</string>
+    <string name="drawer_join">Připojit se ke kapsli</string>
+    <string name="drawer_profile">Profil</string>
+    <string name="drawer_settings">Nastavení</string>
+    <string name="drawer_logout">Odhlásit se</string>
+
+    <string name="profile_title">Profil</string>
+    <string name="section_account">Účet</string>
+    <string name="lbl_no_name">Bez jména</string>
+    <string name="lbl_no_email">Bez e-mailu</string>
+    <string name="section_stats">Statistiky</string>
+    <string name="stat_created">Vytvořeno</string>
+    <string name="stat_opened">Otevřeno</string>
+    <string name="stat_pending">Čekající</string>
+    <string name="desc_stats_placeholder">Toto můžeme později připojit k Firestore/kapslím.</string>
+    <string name="section_actions">Akce</string>
+    <string name="btn_edit_account">Upravit účet</string>
+    <string name="btn_delete_account">Smazat účet</string>
+    <string name="dialog_delete_title">Smazat účet</string>
+    <string name="dialog_delete_body">Tato akce je trvalá. Pro potvrzení zadejte své aktuální heslo.</string>
+    <string name="lbl_current_password">Současné heslo</string>
+    <string name="btn_delete_confirm">Smazat</string>
+
+    <string name="edit_account_title">Upravit účet</string>
+    <string name="section_change_name">Změnit jméno</string>
+    <string name="lbl_new_name">Nové jméno</string>
+    <string name="btn_save_name">Uložit jméno</string>
+    <string name="desc_change_name">Pro změnu údajů o účtu požadujeme aktuální heslo.</string>
+    <string name="section_change_password">Změnit heslo</string>
+    <string name="lbl_new_password">Nové heslo (min. 6 znaků)</string>
+    <string name="lbl_repeat_password">Zopakujte nové heslo</string>
+    <string name="btn_save_password">Uložit heslo</string>
+    <string name="desc_change_password">Firebase vyžaduje před citlivými změnami opětovné ověření.</string>
+    <string name="msg_passwords_mismatch">Hesla se neshodují</string>
+
+    <string name="settings_title">NASTAVENÍ</string>
+    <string name="section_appearance">Vzhled</string>
+    <string name="setting_dark_mode">Tmavý režim</string>
+    <string name="setting_dark_mode_desc">Změňte vizuální styl aplikace</string>
+    <string name="setting_language">Jazyk</string>
+    <string name="setting_language_desc">Čeština (výchozí)</string>
+    <string name="section_help">Nápověda a podpora</string>
+    <string name="setting_what_is">Co je FutureMe?</string>
+    <string name="setting_what_is_desc">Stručné vysvětlení</string>
+    <string name="setting_version">Verze</string>
+
+    <string name="onboarding_skip">PŘESKOČIT</string>
+    <string name="onboarding_back">ZPĚT</string>
+    <string name="onboarding_next">DALŠÍ</string>
+    <string name="onboarding_start">ZAČÍT</string>
+    <string name="onboard_1_title">VÍTEJTE</string>
+    <string name="onboard_1_body">FutureMe ukládá zprávy pro vaše budoucí já.\nNapište dnes a otevřete ji, až přijde čas.</string>
+    <string name="onboard_2_title">NÁPAD</string>
+    <string name="onboard_2_body">Zachyťte, co si myslíte nebo cítíte právě teď.\nAž se otevře, uvidíte to s odstupem.</string>
+    <string name="onboard_3_title">VYTVOŘIT KAPSULI</string>
+    <string name="onboard_3_body">Zadejte název, přidejte text a obrázky.\nZvolte datum a nechte čas plynout.</string>
+    <string name="onboard_4_title">SDÍLET</string>
+    <string name="onboard_4_body">Pokud je kapsle sdílená, pozvěte přátele.\nVšichni ji uvidíte ve stejnou chvíli.</string>
+</resources>
