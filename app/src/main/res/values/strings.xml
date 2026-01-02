@@ -1,3 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Future Me</string>
+    <string name="back">Volver</string>
+    <string name="accept">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="close">Cerrar</string>
+    <string name="save">Guardar</string>
+    <string name="copy">Copiar</string>
+
+    <string name="login_welcome">Bienvenido de Nuevo</string>
+    <string name="login_create_account">Crea tu Cuenta</string>
+    <string name="placeholder_name">Nombre</string>
+    <string name="placeholder_email">Email</string>
+    <string name="placeholder_password">Contraseña</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="toggle_no_account">¿No tienes cuenta? </string>
+    <string name="toggle_has_account">¿Ya tienes cuenta? </string>
+    <string name="action_register">Regístrate</string>
+    <string name="action_login">Inicia Sesión</string>
+
+    <string name="home_title">MIS CÁPSULAS</string>
+    <string name="content_desc_menu">Menú</string>
+    <string name="content_desc_create">Crear</string>
+    <string name="btn_join_capsule">UNIRSE A CÁPSULA</string>
+    <string name="empty_capsules_title">Aún no tienes cápsulas</string>
+    <string name="empty_capsules_msg">Pulsa + para crear la primera.</string>
+    <string name="capsule_ready">¡LISTA PARA ABRIR!</string>
+    <string name="capsule_wait">Se abrirá pronto</string>
+
+    <string name="create_capsule_title">CREAR CÁPSULA</string>
+    <string name="lbl_title">Título</string>
+    <string name="lbl_content">Contenido</string>
+    <string name="section_details">Detalles</string>
+    <string name="section_privacy">Privacidad</string>
+    <string name="lbl_shared_capsule">Cápsula compartida</string>
+    <string name="desc_shared_capsule">Permite invitar usuarios (cuando lo habilites).</string>
+    <string name="section_invites">Invitaciones</string>
+    <string name="desc_invites">Se configurará al guardar la cápsula.</string>
+    <string name="section_dates">Fechas</string>
+    <string name="lbl_deadline">Límite para editar / unirse</string>
+    <string name="lbl_opening_date">Fecha y hora de apertura</string>
+    <string name="hint_select_deadline">Seleccionar límite</string>
+    <string name="hint_select_opening">Seleccionar apertura</string>
+    <string name="section_images">Imágenes</string>
+    <string name="btn_attach_images">Adjuntar imágenes</string>
+    <string name="desc_images_optional">Opcional: puedes añadir imágenes a tu cápsula.</string>
+    <string name="btn_save_capsule">Guardar cápsula</string>
+    <string name="dialog_time_deadline">Selecciona la hora (límite)</string>
+    <string name="dialog_time_opening">Selecciona la hora (apertura)</string>
+
+    <string name="join_capsule_title">UNIRSE A CÁPSULA</string>
+    <string name="lbl_enter_code">Introduce el código</string>
+    <string name="desc_join_code">Te unirás a una cápsula compartida usando su código.</string>
+    <string name="hint_capsule_code">Código de la cápsula</string>
+    <string name="btn_join_action">Unirme a la cápsula</string>
+
+    <string name="msg_contribution_saved">¡Contribución guardada!</string>
+    <string name="section_invitation">Invitación</string>
+    <string name="lbl_invite_code">Código de invitación</string>
+    <string name="msg_code_copied">Código copiado</string>
+    <string name="status_open">Cápsula abierta</string>
+    <string name="status_closed">Cápsula cerrada</string>
+    <string name="fmt_opens_at">Se abre el: %s</string>
+    <string name="section_content">Contenido</string>
+    <string name="msg_no_contributions">No hay contribuciones todavía.</string>
+    <string name="role_creator">Creador</string>
+    <string name="role_participant">Participante</string>
+    <string name="lbl_no_images">Sin imágenes</string>
+    <string name="lbl_no_text">Sin texto</string>
+    <string name="section_your_contribution">Tu contribución</string>
+    <string name="fmt_deadline_warning">Tienes hasta el %s</string>
+    <string name="hint_write_future">Escribe algo para el futuro...</string>
+    <string name="desc_add_images_too">Opcional: añade imágenes también.</string>
+    <string name="btn_save_part">Guardar mi parte</string>
+    <string name="msg_period_ended">El periodo de aportaciones ha finalizado. Ahora solo queda esperar a que se abra.</string>
+
+    <string name="menu_title">MENÚ</string>
+    <string name="menu_profile">PERFIL</string>
+    <string name="menu_settings">AJUSTES</string>
+    <string name="drawer_menu">Menú</string>
+    <string name="drawer_my_capsules">Mis cápsulas</string>
+    <string name="drawer_create">Crear cápsula</string>
+    <string name="drawer_join">Unirse a cápsula</string>
+    <string name="drawer_profile">Perfil</string>
+    <string name="drawer_settings">Ajustes</string>
+    <string name="drawer_logout">Cerrar sesión</string>
+
+    <string name="profile_title">Perfil</string>
+    <string name="section_account">Cuenta</string>
+    <string name="lbl_no_name">Sin nombre</string>
+    <string name="lbl_no_email">Sin email</string>
+    <string name="section_stats">Estadísticas</string>
+    <string name="stat_created">Creadas</string>
+    <string name="stat_opened">Abiertas</string>
+    <string name="stat_pending">Pendientes</string>
+    <string name="desc_stats_placeholder">Luego podemos conectar esto con Firestore/cápsulas.</string>
+    <string name="section_actions">Acciones</string>
+    <string name="btn_edit_account">Editar cuenta</string>
+    <string name="btn_delete_account">Eliminar cuenta</string>
+    <string name="dialog_delete_title">Eliminar cuenta</string>
+    <string name="dialog_delete_body">Esta acción es permanente. Introduce tu contraseña actual para confirmar.</string>
+    <string name="lbl_current_password">Contraseña actual</string>
+    <string name="btn_delete_confirm">Eliminar</string>
+
+    <string name="edit_account_title">Editar cuenta</string>
+    <string name="section_change_name">Cambiar nombre</string>
+    <string name="lbl_new_name">Nuevo nombre</string>
+    <string name="btn_save_name">Guardar nombre</string>
+    <string name="desc_change_name">Para cambiar datos de cuenta pedimos la contraseña actual.</string>
+    <string name="section_change_password">Cambiar contraseña</string>
+    <string name="lbl_new_password">Nueva contraseña (mín. 6)</string>
+    <string name="lbl_repeat_password">Repetir nueva contraseña</string>
+    <string name="btn_save_password">Guardar contraseña</string>
+    <string name="desc_change_password">Firebase requiere reautenticación antes de cambios sensibles.</string>
+    <string name="msg_passwords_mismatch">Las contraseñas no coinciden</string>
+
+    <string name="settings_title">AJUSTES</string>
+    <string name="section_appearance">Apariencia</string>
+    <string name="setting_dark_mode">Modo Oscuro</string>
+    <string name="setting_dark_mode_desc">Cambia el estilo visual de la app</string>
+    <string name="setting_language">Idioma</string>
+    <string name="setting_language_desc">Español (predeterminado)</string>
+    <string name="section_help">Ayuda y Soporte</string>
+    <string name="setting_what_is">¿Qué es FutureMe?</string>
+    <string name="setting_what_is_desc">Breve explicación</string>
+    <string name="setting_version">Versión</string>
+
+    <string name="onboarding_skip">SALTAR</string>
+    <string name="onboarding_back">ATRÁS</string>
+    <string name="onboarding_next">SIGUIENTE</string>
+    <string name="onboarding_start">EMPEZAR</string>
+    <string name="onboard_1_title">BIENVENIDO</string>
+    <string name="onboard_1_body">FutureMe guarda mensajes para tu yo del futuro.\nEscribe hoy y ábrelo cuando llegue el momento.</string>
+    <string name="onboard_2_title">LA IDEA</string>
+    <string name="onboard_2_body">Captura lo que piensas o sientes ahora.\nCuando se abra, lo verás con perspectiva.</string>
+    <string name="onboard_3_title">CREAR CÁPSULA</string>
+    <string name="onboard_3_body">Pon un título, añade texto e imágenes.\nElige una fecha y deja que el tiempo pase.</string>
+    <string name="onboard_4_title">COMPARTIR</string>
+    <string name="onboard_4_body">Si una cápsula es compartida, invita a amigos.\nTodos la veréis al mismo tiempo.</string>
 </resources>
