@@ -13,8 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.futureme.R
 import com.example.futureme.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -70,7 +72,7 @@ fun EditAccountScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Editar cuenta",
+                            text = stringResource(R.string.edit_account_title),
                             color = titleGold,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -79,7 +81,7 @@ fun EditAccountScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
+                                contentDescription = stringResource(R.string.back),
                                 tint = gold
                             )
                         }
@@ -127,7 +129,7 @@ fun EditAccountScreen(
                             Icon(Icons.Default.Person, contentDescription = null, tint = gold)
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                "Cambiar nombre",
+                                stringResource(R.string.section_change_name),
                                 color = titleGold,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
@@ -138,7 +140,7 @@ fun EditAccountScreen(
                             value = newName,
                             onValueChange = { newName = it },
                             singleLine = true,
-                            label = { Text("Nuevo nombre") },
+                            label = { Text(stringResource(R.string.lbl_new_name)) },
                             colors = fieldColors(gold)
                         )
 
@@ -146,7 +148,7 @@ fun EditAccountScreen(
                             value = currentPasswordForName,
                             onValueChange = { currentPasswordForName = it },
                             singleLine = true,
-                            label = { Text("Contraseña actual") },
+                            label = { Text(stringResource(R.string.lbl_current_password)) },
                             colors = fieldColors(gold)
                         )
 
@@ -166,11 +168,11 @@ fun EditAccountScreen(
                             shape = RoundedCornerShape(18.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Guardar nombre", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.btn_save_name), fontWeight = FontWeight.SemiBold)
                         }
 
                         Text(
-                            text = "Para cambiar datos de cuenta pedimos la contraseña actual.",
+                            text = stringResource(R.string.desc_change_name),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -195,7 +197,7 @@ fun EditAccountScreen(
                             Icon(Icons.Default.Lock, contentDescription = null, tint = gold)
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                "Cambiar contraseña",
+                                stringResource(R.string.section_change_password),
                                 color = titleGold,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
@@ -206,7 +208,7 @@ fun EditAccountScreen(
                             value = currentPasswordForPass,
                             onValueChange = { currentPasswordForPass = it },
                             singleLine = true,
-                            label = { Text("Contraseña actual") },
+                            label = { Text(stringResource(R.string.lbl_current_password)) },
                             colors = fieldColors(gold)
                         )
 
@@ -214,7 +216,7 @@ fun EditAccountScreen(
                             value = newPassword,
                             onValueChange = { newPassword = it },
                             singleLine = true,
-                            label = { Text("Nueva contraseña (mín. 6)") },
+                            label = { Text(stringResource(R.string.lbl_new_password)) },
                             colors = fieldColors(gold)
                         )
 
@@ -222,14 +224,15 @@ fun EditAccountScreen(
                             value = repeatNewPassword,
                             onValueChange = { repeatNewPassword = it },
                             singleLine = true,
-                            label = { Text("Repetir nueva contraseña") },
+                            label = { Text(stringResource(R.string.lbl_repeat_password)) },
                             colors = fieldColors(gold)
                         )
 
+                        val mismatchMsg = stringResource(R.string.msg_passwords_mismatch)
                         Button(
                             onClick = {
                                 if (newPassword != repeatNewPassword) {
-                                    scope.launch { snackbarHostState.showSnackbar("Las contraseñas no coinciden") }
+                                    scope.launch { snackbarHostState.showSnackbar(mismatchMsg) }
                                 } else {
                                     authViewModel.updatePassword(
                                         currentPassword = currentPasswordForPass,
@@ -246,11 +249,11 @@ fun EditAccountScreen(
                             shape = RoundedCornerShape(18.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Guardar contraseña", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.btn_save_password), fontWeight = FontWeight.SemiBold)
                         }
 
                         Text(
-                            text = "Firebase requiere reautenticación antes de cambios sensibles.",
+                            text = stringResource(R.string.desc_change_password),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )

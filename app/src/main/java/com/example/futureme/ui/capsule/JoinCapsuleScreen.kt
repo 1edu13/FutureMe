@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.futureme.R
 import com.example.futureme.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +82,7 @@ fun JoinCapsuleScreenContent(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "UNIRSE A CÁPSULA",
+                            text = stringResource(R.string.join_capsule_title),
                             color = gold,
                             fontWeight = FontWeight.Black
                         )
@@ -89,7 +91,7 @@ fun JoinCapsuleScreenContent(
                         IconButton(onClick = onNavigateBack, enabled = !isLoading) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
+                                contentDescription = stringResource(R.string.back),
                                 tint = gold
                             )
                         }
@@ -128,14 +130,14 @@ fun JoinCapsuleScreenContent(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
-                            text = "Introduce el código",
+                            text = stringResource(R.string.lbl_enter_code),
                             color = gold,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
-                            text = "Te unirás a una cápsula compartida usando su código.",
+                            text = stringResource(R.string.desc_join_code),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -143,7 +145,7 @@ fun JoinCapsuleScreenContent(
                         OutlinedTextField(
                             value = code,
                             onValueChange = { code = it },
-                            label = { Text("Código de la cápsula") },
+                            label = { Text(stringResource(R.string.hint_capsule_code)) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !isLoading,
                             singleLine = true,
@@ -213,7 +215,7 @@ fun JoinCapsuleScreenContent(
                                     gold.copy(alpha = if (canJoin) 0.55f else 0.22f)
                                 )
                             ) {
-                                Text("Unirme a la cápsula", fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.btn_join_action), fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

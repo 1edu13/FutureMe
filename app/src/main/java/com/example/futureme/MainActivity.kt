@@ -1,13 +1,15 @@
 package com.example.futureme
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -24,6 +26,7 @@ import com.example.futureme.ui.capsule.CapsuleViewModel
 import com.example.futureme.ui.capsule.CreateCapsuleScreen
 import com.example.futureme.ui.capsule.HomeCapsuleScreen
 import com.example.futureme.ui.capsule.JoinCapsuleScreen
+import com.example.futureme.ui.menu.AppDrawerContent
 import com.example.futureme.ui.menu.MainMenuScreen
 import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.onboarding.OnboardingScreen
@@ -31,11 +34,11 @@ import com.example.futureme.ui.settings.SettingsScreen
 import com.example.futureme.ui.theme.FutureMeTheme
 import com.example.futureme.ui.theme.ThemeViewModel
 import com.example.futureme.ui.theme.ThemeViewModelFactory
-import com.example.futureme.ui.menu.AppDrawerContent
-
 import kotlinx.coroutines.launch
+import java.util.Locale
 
-class MainActivity : ComponentActivity() {
+// ⚠️ Importante: Heredar de AppCompatActivity para soporte de idiomas nativo
+class MainActivity : AppCompatActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
     private val capsuleViewModel: CapsuleViewModel by viewModels()
@@ -50,12 +53,26 @@ class MainActivity : ComponentActivity() {
             val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
             val isDark by themeVm.isDark.collectAsState()
 
+            // Detectar idioma actual
+            val localeList = AppCompatDelegate.getApplicationLocales()
+            val currentLanguageCode = if (!localeList.isEmpty) {
+                localeList[0]?.language ?: Locale.getDefault().language
+            } else {
+                Locale.getDefault().language
+            }
+
             FutureMeTheme(darkTheme = isDark) {
                 AppNavHost(
                     authViewModel = authViewModel,
                     capsuleViewModel = capsuleViewModel,
                     isDark = isDark,
-                    onToggleTheme = { enabled -> themeVm.setDark(enabled) }
+                    currentLanguageCode = currentLanguageCode,
+                    onToggleTheme = { enabled -> themeVm.setDark(enabled) },
+                    onLanguageChange = { newCode ->
+                        // Lógica nativa de Android para cambiar idioma "Per-App"
+                        val appLocale = LocaleListCompat.forLanguageTags(newCode)
+                        AppCompatDelegate.setApplicationLocales(appLocale)
+                    }
                 )
             }
         }
@@ -67,12 +84,14 @@ fun AppNavHost(
     authViewModel: AuthViewModel,
     capsuleViewModel: CapsuleViewModel,
     isDark: Boolean,
-    onToggleTheme: (Boolean) -> Unit
+    currentLanguageCode: String,
+    onToggleTheme: (Boolean) -> Unit,
+    onLanguageChange: (String) -> Unit
 ) {
     val navController = rememberNavController()
     val user by authViewModel.user.collectAsState()
 
-    // ✅ Estado onboarding (Firestore)
+    // Estado onboarding (Firestore)
     val onboardingCompleted by authViewModel.onboardingCompleted.collectAsState()
 
     // Saber en qué ruta estamos
@@ -92,12 +111,12 @@ fun AppNavHost(
         }
     }
 
-    // ✅ Cuando hay usuario, cargamos onboardingCompleted desde Firestore
+    // Cargar onboardingCompleted desde Firestore si hay usuario
     LaunchedEffect(user) {
         if (user != null) authViewModel.loadOnboardingState()
     }
 
-    // ✅ Si NO ha completado onboarding -> vamos a Onboarding (solo si no estamos ya ahí)
+    // Ir a Onboarding si no se ha completado
     LaunchedEffect(user, onboardingCompleted, currentRoute) {
         if (
             user != null &&
@@ -108,7 +127,6 @@ fun AppNavHost(
         }
     }
 
-    // ✅ Solo mostramos drawer si NO estamos en login NI onboarding y hay usuario
     val showDrawer =
         user != null &&
                 currentRoute != Screen.Login.route &&
@@ -140,7 +158,9 @@ fun AppNavHost(
                 userId = user?.uid,
                 onOpenDrawer = { scope.launch { drawerState.open() } },
                 isDark = isDark,
-                onToggleTheme = onToggleTheme
+                currentLanguageCode = currentLanguageCode,
+                onToggleTheme = onToggleTheme,
+                onLanguageChange = onLanguageChange
             )
         }
     } else {
@@ -152,7 +172,9 @@ fun AppNavHost(
             userId = user?.uid,
             onOpenDrawer = null,
             isDark = isDark,
-            onToggleTheme = onToggleTheme
+            currentLanguageCode = currentLanguageCode,
+            onToggleTheme = onToggleTheme,
+            onLanguageChange = onLanguageChange
         )
     }
 }
@@ -165,7 +187,9 @@ private fun AppNavContent(
     userId: String?,
     onOpenDrawer: (() -> Unit)?,
     isDark: Boolean,
-    onToggleTheme: (Boolean) -> Unit
+    currentLanguageCode: String,
+    onToggleTheme: (Boolean) -> Unit,
+    onLanguageChange: (String) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -180,7 +204,7 @@ private fun AppNavContent(
             )
         }
 
-        // ✅ ONBOARDING (popups/tutorial)
+        // ONBOARDING
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 isDark = isDark,
@@ -192,7 +216,6 @@ private fun AppNavContent(
                         }
                     }
                 }
-
             )
         }
 
@@ -207,7 +230,7 @@ private fun AppNavContent(
             )
         }
 
-        // HOME (Mis cápsulas)
+        // HOME
         composable(Screen.Home.route) {
             HomeCapsuleScreen(
                 isDark = isDark,
@@ -250,6 +273,7 @@ private fun AppNavContent(
             )
         }
 
+        // EDITAR CUENTA
         composable(Screen.EditAccount.route) {
             com.example.futureme.ui.profile.EditAccountScreen(
                 authViewModel = authViewModel,
@@ -261,7 +285,9 @@ private fun AppNavContent(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 isDark = isDark,
+                currentLanguageCode = currentLanguageCode,
                 onToggleTheme = onToggleTheme,
+                onLanguageChange = onLanguageChange,
                 onNavigateBack = { navController.popBackStack() },
                 onShowTutorialAgain = {
                     authViewModel.resetOnboarding()
@@ -270,7 +296,7 @@ private fun AppNavContent(
             )
         }
 
-        // DETALLES DE CÁPSULA
+        // DETALLES
         composable(
             route = Screen.CapsuleDetail.route,
             arguments = listOf(navArgument("capsuleId") { type = NavType.StringType })
@@ -285,4 +311,3 @@ private fun AppNavContent(
         }
     }
 }
-

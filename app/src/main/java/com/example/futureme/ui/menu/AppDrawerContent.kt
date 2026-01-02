@@ -23,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.futureme.R
 import com.example.futureme.ui.navigation.Screen
 import com.example.futureme.ui.theme.*
 
@@ -82,7 +84,7 @@ fun AppDrawerContent(
                 Spacer(Modifier.height(8.dp))
 
                 DrawerRow(
-                    label = "Menú",
+                    label = stringResource(R.string.drawer_menu),
                     icon = Icons.Default.Menu,
                     selected = currentRoute == Screen.MainMenu.route,
                     selectedBg = selectedBg,
@@ -92,7 +94,7 @@ fun AppDrawerContent(
                 )
 
                 DrawerRow(
-                    label = "Mis cápsulas",
+                    label = stringResource(R.string.drawer_my_capsules),
                     icon = Icons.Default.Home,
                     selected = currentRoute == Screen.Home.route,
                     selectedBg = selectedBg,
@@ -102,7 +104,7 @@ fun AppDrawerContent(
                 )
 
                 DrawerRow(
-                    label = "Crear cápsula",
+                    label = stringResource(R.string.drawer_create),
                     icon = Icons.Default.AddCircle,
                     selected = currentRoute == Screen.CreateCapsule.route,
                     selectedBg = selectedBg,
@@ -112,7 +114,7 @@ fun AppDrawerContent(
                 )
 
                 DrawerRow(
-                    label = "Unirse a cápsula",
+                    label = stringResource(R.string.drawer_join),
                     icon = Icons.Default.Link,
                     selected = currentRoute == Screen.JoinCapsule.route,
                     selectedBg = selectedBg,
@@ -126,7 +128,7 @@ fun AppDrawerContent(
                 Spacer(Modifier.height(10.dp))
 
                 DrawerRow(
-                    label = "Perfil",
+                    label = stringResource(R.string.drawer_profile),
                     icon = Icons.Default.Person,
                     selected = currentRoute == Screen.Profile.route,
                     selectedBg = selectedBg,
@@ -136,7 +138,7 @@ fun AppDrawerContent(
                 )
 
                 DrawerRow(
-                    label = "Ajustes",
+                    label = stringResource(R.string.drawer_settings),
                     icon = Icons.Default.Settings,
                     selected = currentRoute == Screen.Settings.route,
                     selectedBg = selectedBg,
@@ -150,7 +152,7 @@ fun AppDrawerContent(
                 Spacer(Modifier.height(10.dp))
 
                 DrawerRow(
-                    label = "Cerrar sesión",
+                    label = stringResource(R.string.drawer_logout),
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     selected = false,
                     selectedBg = selectedBg,

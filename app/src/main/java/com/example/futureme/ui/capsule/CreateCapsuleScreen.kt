@@ -28,11 +28,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.futureme.R
 import com.example.futureme.ui.theme.*
-import kotlinx.serialization.builtins.BooleanArraySerializer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -154,10 +155,10 @@ fun CreateCapsuleScreenContent(
     val dateTimeFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
 
     val editDeadlineText = remember(editDeadline) {
-        editDeadline?.let { dateTimeFormatter.format(it.time) } ?: "Seleccionar límite"
+        editDeadline?.let { dateTimeFormatter.format(it.time) } ?: ""
     }
     val openDateText = remember(openDate) {
-        openDate?.let { dateTimeFormatter.format(it.time) } ?: "Seleccionar apertura"
+        openDate?.let { dateTimeFormatter.format(it.time) } ?: ""
     }
 
     // (Se mantiene tu comportamiento: abrir el datePicker al pulsar)
@@ -191,7 +192,7 @@ fun CreateCapsuleScreenContent(
                     TopAppBar(
                         title = {
                             Text(
-                                "CREAR CÁPSULA",
+                                stringResource(R.string.create_capsule_title),
                                 color = gold,
                                 fontWeight = FontWeight.Black
                             )
@@ -200,7 +201,7 @@ fun CreateCapsuleScreenContent(
                             IconButton(onClick = onNavigateBack, enabled = !isLoading) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Volver",
+                                    contentDescription = stringResource(R.string.back),
                                     tint = gold
                                 )
                             }
@@ -222,7 +223,7 @@ fun CreateCapsuleScreenContent(
             ) {
 
                 SectionCard(
-                    title = "Detalles",
+                    title = stringResource(R.string.section_details),
                     gold = gold,
                     titleGold = titleGold,
                     cardBrush = cardBrush,
@@ -231,7 +232,7 @@ fun CreateCapsuleScreenContent(
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Título") },
+                        label = { Text(stringResource(R.string.lbl_title)) },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading,
                         colors = goldFieldColors(gold, textPrimary, textSecondary)
@@ -242,7 +243,7 @@ fun CreateCapsuleScreenContent(
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
-                        label = { Text("Contenido") },
+                        label = { Text(stringResource(R.string.lbl_content)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 140.dp),
@@ -253,7 +254,7 @@ fun CreateCapsuleScreenContent(
                 }
 
                 SectionCard(
-                    title = "Privacidad",
+                    title = stringResource(R.string.section_privacy),
                     gold = gold,
                     titleGold = titleGold,
                     cardBrush = cardBrush,
@@ -265,13 +266,13 @@ fun CreateCapsuleScreenContent(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Cápsula compartida",
+                                text = stringResource(R.string.lbl_shared_capsule),
                                 color = textPrimary,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Permite invitar usuarios (cuando lo habilites).",
+                                text = stringResource(R.string.desc_shared_capsule),
                                 color = textSecondary,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -303,14 +304,14 @@ fun CreateCapsuleScreenContent(
                                     .padding(14.dp)
                             ) {
                                 Text(
-                                    text = "Invitaciones",
+                                    text = stringResource(R.string.section_invites),
                                     color = gold,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = "Se configurará al guardar la cápsula.",
+                                    text = stringResource(R.string.desc_invites),
                                     color = textSecondary,
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -320,15 +321,15 @@ fun CreateCapsuleScreenContent(
                 }
 
                 SectionCard(
-                    title = "Fechas",
+                    title = stringResource(R.string.section_dates),
                     gold = gold,
                     titleGold = titleGold,
                     cardBrush = cardBrush,
                     cardBorder = cardBorder
                 ) {
                     DateCard(
-                        title = "Límite para editar / unirse",
-                        value = editDeadlineText,
+                        title = stringResource(R.string.lbl_deadline),
+                        value = if (editDeadlineText.isEmpty()) stringResource(R.string.hint_select_deadline) else editDeadlineText,
                         iconTint = gold,
                         textPrimary = textPrimary,
                         textSecondary = textSecondary,
@@ -341,8 +342,8 @@ fun CreateCapsuleScreenContent(
                     Spacer(Modifier.height(10.dp))
 
                     DateCard(
-                        title = "Fecha y hora de apertura",
-                        value = openDateText,
+                        title = stringResource(R.string.lbl_opening_date),
+                        value = if (openDateText.isEmpty()) stringResource(R.string.hint_select_opening) else openDateText,
                         iconTint = gold,
                         textPrimary = textPrimary,
                         textSecondary = textSecondary,
@@ -354,7 +355,7 @@ fun CreateCapsuleScreenContent(
                 }
 
                 SectionCard(
-                    title = "Imágenes",
+                    title = stringResource(R.string.section_images),
                     gold = gold,
                     titleGold = titleGold,
                     cardBrush = cardBrush,
@@ -377,7 +378,7 @@ fun CreateCapsuleScreenContent(
                     ) {
                         Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = gold)
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text("Adjuntar imágenes", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.btn_attach_images), fontWeight = FontWeight.SemiBold)
                     }
 
                     if (selectedImageUris.isNotEmpty()) {
@@ -401,7 +402,7 @@ fun CreateCapsuleScreenContent(
                     } else {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Opcional: puedes añadir imágenes a tu cápsula.",
+                            text = stringResource(R.string.desc_images_optional),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -450,7 +451,7 @@ fun CreateCapsuleScreenContent(
                         ),
                         border = BorderStroke(1.dp, gold.copy(alpha = if (canSave) 0.55f else 0.22f))
                     ) {
-                        Text("Guardar cápsula", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.btn_save_capsule), fontWeight = FontWeight.SemiBold)
                     }
                 }
 
@@ -486,10 +487,10 @@ fun CreateCapsuleScreenContent(
                             showDeadlineDatePicker = false
                             showDeadlineTimePicker = true
                         }
-                    ) { Text("Aceptar") }
+                    ) { Text(stringResource(R.string.accept)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeadlineDatePicker = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showDeadlineDatePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             ) {
                 DatePicker(state = deadlineDatePickerState)
@@ -505,7 +506,7 @@ fun CreateCapsuleScreenContent(
                 containerColor = if (isDark) AzulSuperficie else ClaroSuave,
                 title = {
                     Text(
-                        "Selecciona la hora (límite)",
+                        stringResource(R.string.dialog_time_deadline),
                         color = gold,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -540,10 +541,10 @@ fun CreateCapsuleScreenContent(
 
                             showDeadlineTimePicker = false
                         }
-                    ) { Text("Aceptar") }
+                    ) { Text(stringResource(R.string.accept)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeadlineTimePicker = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showDeadlineTimePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             )
         }
@@ -576,10 +577,10 @@ fun CreateCapsuleScreenContent(
                             showOpenDatePicker = false
                             showOpenTimePicker = true
                         }
-                    ) { Text("Aceptar") }
+                    ) { Text(stringResource(R.string.accept)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showOpenDatePicker = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showOpenDatePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             ) {
                 DatePicker(state = openDatePickerState)
@@ -595,7 +596,7 @@ fun CreateCapsuleScreenContent(
                 containerColor = if (isDark) AzulSuperficie else ClaroSuave,
                 title = {
                     Text(
-                        "Selecciona la hora (apertura)",
+                        stringResource(R.string.dialog_time_opening),
                         color = gold,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -630,10 +631,10 @@ fun CreateCapsuleScreenContent(
 
                             showOpenTimePicker = false
                         }
-                    ) { Text("Aceptar") }
+                    ) { Text(stringResource(R.string.accept)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showOpenTimePicker = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showOpenTimePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             )
         }

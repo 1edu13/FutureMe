@@ -13,8 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.futureme.R
 import com.example.futureme.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -67,7 +69,7 @@ fun ProfileScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Perfil",
+                            text = stringResource(R.string.profile_title),
                             color = titleGold,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -76,7 +78,7 @@ fun ProfileScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
+                                contentDescription = stringResource(R.string.back),
                                 tint = gold
                             )
                         }
@@ -116,7 +118,7 @@ fun ProfileScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
 
                         Text(
-                            text = "Cuenta",
+                            text = stringResource(R.string.section_account),
                             color = titleGold,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
@@ -124,11 +126,11 @@ fun ProfileScreen(
 
                         Spacer(Modifier.height(10.dp))
 
-                        val displayName = user?.displayName?.takeIf { it.isNotBlank() } ?: "Sin nombre"
-                        val email = user?.email ?: "Sin email"
+                        val displayName = user?.displayName?.takeIf { it.isNotBlank() } ?: stringResource(R.string.lbl_no_name)
+                        val email = user?.email ?: stringResource(R.string.lbl_no_email)
 
                         Text(
-                            text = "Nombre",
+                            text = stringResource(R.string.placeholder_name),
                             color = textSecondary,
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -142,7 +144,7 @@ fun ProfileScreen(
                         Spacer(Modifier.height(10.dp))
 
                         Text(
-                            text = "Email",
+                            text = stringResource(R.string.placeholder_email),
                             color = textSecondary,
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -164,7 +166,7 @@ fun ProfileScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Estadísticas",
+                            text = stringResource(R.string.section_stats),
                             color = titleGold,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
@@ -178,7 +180,7 @@ fun ProfileScreen(
                         ) {
                             StatChip(
                                 modifier = Modifier.weight(1f),
-                                title = "Creadas",
+                                title = stringResource(R.string.stat_created),
                                 value = "—",
                                 gold = gold,
                                 cardBg = Color(0xFF121212),
@@ -186,7 +188,7 @@ fun ProfileScreen(
                             )
                             StatChip(
                                 modifier = Modifier.weight(1f),
-                                title = "Abiertas",
+                                title = stringResource(R.string.stat_opened),
                                 value = "—",
                                 gold = gold,
                                 cardBg = Color(0xFF121212),
@@ -194,7 +196,7 @@ fun ProfileScreen(
                             )
                             StatChip(
                                 modifier = Modifier.weight(1f),
-                                title = "Pendientes",
+                                title = stringResource(R.string.stat_pending),
                                 value = "—",
                                 gold = gold,
                                 cardBg = Color(0xFF121212),
@@ -204,7 +206,7 @@ fun ProfileScreen(
 
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Luego podemos conectar esto con Firestore/cápsulas.",
+                            text = stringResource(R.string.desc_stats_placeholder),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -226,7 +228,7 @@ fun ProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "Acciones",
+                            text = stringResource(R.string.section_actions),
                             color = titleGold,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
@@ -245,7 +247,7 @@ fun ProfileScreen(
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null, tint = gold)
                             Spacer(Modifier.width(10.dp))
-                            Text("Editar cuenta")
+                            Text(stringResource(R.string.btn_edit_account))
                         }
 
                         Button(
@@ -261,7 +263,7 @@ fun ProfileScreen(
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFB24A4A))
                             Spacer(Modifier.width(10.dp))
-                            Text("Eliminar cuenta")
+                            Text(stringResource(R.string.btn_delete_account))
                         }
                     }
                 }
@@ -278,18 +280,18 @@ fun ProfileScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { if (!isLoading) showDeleteDialog = false },
-            title = { Text("Eliminar cuenta", color = titleGold, fontWeight = FontWeight.SemiBold) },
+            title = { Text(stringResource(R.string.dialog_delete_title), color = titleGold, fontWeight = FontWeight.SemiBold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        "Esta acción es permanente. Introduce tu contraseña actual para confirmar.",
+                        stringResource(R.string.dialog_delete_body),
                         color = textPrimary
                     )
                     OutlinedTextField(
                         value = deletePassword,
                         onValueChange = { deletePassword = it },
                         singleLine = true,
-                        label = { Text("Contraseña actual") },
+                        label = { Text(stringResource(R.string.lbl_current_password)) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = gold,
                             focusedLabelColor = gold,
@@ -313,7 +315,7 @@ fun ProfileScreen(
                     },
                     enabled = !isLoading
                 ) {
-                    Text("Eliminar", color = Color(0xFFB24A4A), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.btn_delete_confirm), color = Color(0xFFB24A4A), fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
@@ -324,7 +326,7 @@ fun ProfileScreen(
                     },
                     enabled = !isLoading
                 ) {
-                    Text("Cancelar", color = textPrimary)
+                    Text(stringResource(R.string.cancel), color = textPrimary)
                 }
             },
             containerColor = Color(0xFF121212)

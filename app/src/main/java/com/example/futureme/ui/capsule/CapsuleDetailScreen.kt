@@ -33,10 +33,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.futureme.R
 import com.example.futureme.data.model.Capsule
 import com.example.futureme.data.repository.AuthRepository
 import com.example.futureme.ui.theme.*
@@ -67,8 +69,9 @@ fun CapsuleDetailScreen(
         capsuleViewModel.loadCapsuleById(capsuleId)
     }
 
+    val savedMsg = stringResource(R.string.msg_contribution_saved)
     LaunchedEffect(saveSuccess) {
-        if (saveSuccess) Toast.makeText(context, "¡Contribución guardada!", Toast.LENGTH_SHORT).show()
+        if (saveSuccess) Toast.makeText(context, savedMsg, Toast.LENGTH_SHORT).show()
     }
 
     DisposableEffect(Unit) {
@@ -107,7 +110,7 @@ fun CapsuleDetailScreen(
                             IconButton(onClick = onNavigateBack) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Volver",
+                                    contentDescription = stringResource(R.string.back),
                                     tint = gold
                                 )
                             }
@@ -203,9 +206,9 @@ private fun CapsuleDetailContent(
         // 1) CÓDIGO INVITACIÓN (solo owner + compartida + editable + NO abierta)
         if (isOwner && capsule.isShared && capsule.isEditable() && !capsule.isOpenable()) {
             item {
-                SectionCardGradient("Invitación", gold, titleGold, cardBrush, cardBorder) {
+                SectionCardGradient(stringResource(R.string.section_invitation), gold, titleGold, cardBrush, cardBorder) {
                     Text(
-                        text = "Código de invitación",
+                        text = stringResource(R.string.lbl_invite_code),
                         color = textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -233,14 +236,15 @@ private fun CapsuleDetailContent(
                                 modifier = Modifier.weight(1f)
                             )
 
+                            val copyMsg = stringResource(R.string.msg_code_copied)
                             IconButton(onClick = {
                                 val clipboard =
                                     context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                 val clip = ClipData.newPlainText("Código cápsula", capsule.inviteCode)
                                 clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, copyMsg, Toast.LENGTH_SHORT).show()
                             }) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = "Copiar", tint = gold)
+                                Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.copy), tint = gold)
                             }
                         }
                     }
@@ -251,8 +255,9 @@ private fun CapsuleDetailContent(
         // 2) CABECERA DE ESTADO
         item {
             val openDate = capsule.openDate.toDate()
-            val stateTitle = if (capsule.isOpenable()) "Cápsula abierta" else "Cápsula cerrada"
+            val stateTitle = if (capsule.isOpenable()) stringResource(R.string.status_open) else stringResource(R.string.status_closed)
             val stateIcon = if (capsule.isOpenable()) Icons.Default.LockOpen else Icons.Default.Lock
+            val formattedDate = DateFormat.getDateTimeInstance().format(openDate)
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -294,7 +299,7 @@ private fun CapsuleDetailContent(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Se abre el: ${DateFormat.getDateTimeInstance().format(openDate)}",
+                            text = stringResource(R.string.fmt_opens_at, formattedDate),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -309,9 +314,9 @@ private fun CapsuleDetailContent(
 
             if (entries.isEmpty()) {
                 item {
-                    SectionCardGradient("Contenido", gold, titleGold, cardBrush, cardBorder) {
+                    SectionCardGradient(stringResource(R.string.section_content), gold, titleGold, cardBrush, cardBorder) {
                         Text(
-                            text = "No hay contribuciones todavía.",
+                            text = stringResource(R.string.msg_no_contributions),
                             color = textSecondary,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -343,13 +348,14 @@ private fun CapsuleDetailContent(
             item {
                 if (capsule.isEditable()) {
                     val deadline = capsule.editDeadline.toDate()
+                    val dateStr = DateFormat.getDateTimeInstance().format(deadline)
 
-                    SectionCardGradient("Tu contribución", gold, titleGold, cardBrush, cardBorder) {
+                    SectionCardGradient(stringResource(R.string.section_your_contribution), gold, titleGold, cardBrush, cardBorder) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.DateRange, contentDescription = null, tint = gold)
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                text = "Tienes hasta el ${DateFormat.getDateTimeInstance().format(deadline)}",
+                                text = stringResource(R.string.fmt_deadline_warning, dateStr),
                                 color = textSecondary,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -376,7 +382,7 @@ private fun CapsuleDetailContent(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.45f))
                     ) {
                         Text(
-                            text = "El periodo de aportaciones ha finalizado. Ahora solo queda esperar a que se abra.",
+                            text = stringResource(R.string.msg_period_ended),
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(16.dp),
                             style = MaterialTheme.typography.bodyMedium
@@ -436,7 +442,7 @@ private fun ContributionSection(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (isCreator) "Creador" else "Participante",
+                        text = if (isCreator) stringResource(R.string.role_creator) else stringResource(R.string.role_participant),
                         color = titleGold,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
@@ -459,7 +465,7 @@ private fun ContributionSection(
                     border = BorderStroke(1.dp, gold.copy(alpha = 0.12f))
                 ) {
                     Text(
-                        text = "Sin imágenes",
+                        text = stringResource(R.string.lbl_no_images),
                         color = textSecondary,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
@@ -489,7 +495,7 @@ private fun ContributionSection(
                 }
             } else {
                 Text(
-                    text = "Sin texto",
+                    text = stringResource(R.string.lbl_no_text),
                     color = textSecondary,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.alpha(0.9f)
@@ -582,7 +588,7 @@ private fun FullscreenImageViewer(
                 border = BorderStroke(1.dp, gold.copy(alpha = 0.35f))
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = gold)
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close), tint = gold)
                 }
             }
         }
@@ -610,7 +616,7 @@ private fun ContributionFormStyled(
     OutlinedTextField(
         value = text,
         onValueChange = { text = it },
-        label = { Text("Escribe algo para el futuro...") },
+        label = { Text(stringResource(R.string.hint_write_future)) },
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 120.dp),
@@ -644,7 +650,7 @@ private fun ContributionFormStyled(
     ) {
         Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = gold)
         Spacer(modifier = Modifier.width(10.dp))
-        Text("Adjuntar imágenes", fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.btn_attach_images), fontWeight = FontWeight.SemiBold)
     }
 
     if (selectedImageUris.isNotEmpty()) {
@@ -666,7 +672,7 @@ private fun ContributionFormStyled(
         }
     } else {
         Text(
-            text = "Opcional: añade imágenes también.",
+            text = stringResource(R.string.desc_add_images_too),
             color = textSecondary,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.alpha(0.9f)
@@ -692,7 +698,7 @@ private fun ContributionFormStyled(
         ),
         border = BorderStroke(1.dp, gold.copy(alpha = 0.45f))
     ) {
-        Text("Guardar mi parte", fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.btn_save_part), fontWeight = FontWeight.SemiBold)
     }
 }
 
