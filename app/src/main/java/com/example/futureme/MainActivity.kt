@@ -241,6 +241,7 @@ private fun AppNavContent(
             com.example.futureme.ui.profile.ProfileScreen(
                 isDark = isDark,
                 authViewModel = authViewModel,
+                capsuleViewModel = capsuleViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onGoToEditAccount = { navController.navigate(Screen.EditAccount.route) }
             )

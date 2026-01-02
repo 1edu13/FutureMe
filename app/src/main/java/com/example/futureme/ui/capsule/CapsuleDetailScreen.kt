@@ -43,6 +43,9 @@ import com.example.futureme.data.model.Capsule
 import com.example.futureme.data.repository.AuthRepository
 import com.example.futureme.ui.theme.*
 import java.text.DateFormat
+import android.app.DownloadManager
+import android.os.Environment
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -391,18 +394,56 @@ private fun CapsuleDetailContent(
                 }
             }
         }
+
         item {
+            val allImages = buildList {
+                addAll(capsule.images)
+                capsule.contributions.values.forEach { data ->
+                    val imgs = data["images"] as? List<String> ?: emptyList()
+                    addAll(imgs)
+                }
+            }.distinct()
+
             SectionCardGradient("Acciones", gold, titleGold, cardBrush, cardBorder) {
+
+                // ✅ SOLO aparece si hay imágenes
+                // ✅ SOLO aparece si está ABIERTA y hay imágenes
+                if (capsule.isOpenable() && allImages.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            downloadAllCapsuleImages(
+                                context = context,
+                                capsuleTitle = capsule.title,
+                                urls = allImages
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = gold,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Text("Descargar todas las fotos")
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+                }
+
+                // ✅ Salir / Abandonar (siempre visible)
                 Button(
                     onClick = {
                         viewModel.leaveCapsule(capsule.id)
                         Toast.makeText(context, "Has salido de la cápsula", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = gold,
+                        contentColor = Color.Black
+                    ),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    Text("Eliminar cápsula")
+                    Text("Eliminar capsula")
                 }
             }
         }
@@ -750,4 +791,43 @@ private fun SectionCardGradient(
             }
         )
     }
+}
+
+private fun downloadAllCapsuleImages(
+    context: Context,
+    capsuleTitle: String,
+    urls: List<String>
+) {
+    if (urls.isEmpty()) {
+        Toast.makeText(context, "No hay imágenes para descargar", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+    val safeTitle = capsuleTitle
+        .trim()
+        .take(24)
+        .replace(Regex("[^a-zA-Z0-9_\\- ]"), "")
+        .replace(" ", "_")
+        .ifBlank { "capsule" }
+
+    urls.distinct().forEachIndexed { index, url ->
+        runCatching {
+            val req = DownloadManager.Request(Uri.parse(url))
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+                .setTitle("FutureMe: $safeTitle")
+                .setDescription("Descargando imagen ${index + 1}/${urls.size}")
+                .setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS,
+                    "FutureMe_${safeTitle}_${index + 1}.jpg"
+                )
+
+            dm.enqueue(req)
+        }
+    }
+
+    Toast.makeText(context, "Descarga iniciada (${urls.size} imágenes)", Toast.LENGTH_SHORT).show()
 }

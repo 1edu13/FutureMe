@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.futureme.R
 import com.example.futureme.ui.auth.AuthViewModel
+import com.example.futureme.ui.capsule.CapsuleViewModel
 import com.example.futureme.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -26,6 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     authViewModel: AuthViewModel,
+    capsuleViewModel: CapsuleViewModel,
     onNavigateBack: () -> Unit,
     onGoToEditAccount: () -> Unit,
     isDark: Boolean
@@ -34,6 +36,18 @@ fun ProfileScreen(
     val error by authViewModel.error.collectAsState()
     val success by authViewModel.success.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
+
+    val capsules = capsuleViewModel.capsules.collectAsState().value
+
+    val openedCount = capsules.count { it.isOpenable() }
+
+    val pendingCount = capsules.count {
+        !it.isOpenable() && it.isEditable()
+    }
+
+    val closedCount = capsules.count {
+        !it.isOpenable() && !it.isEditable()
+    }
 
     // 🎨 Paleta (igual enfoque que Settings)
     val gold = OroAmbar
@@ -179,7 +193,7 @@ fun ProfileScreen(
                                 .padding(16.dp)
                         ) {
                             Text(
-                                text = stringResource(R.string.section_stats),
+                                text = "Estado de tus cápsulas",
                                 color = titleGold,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
@@ -187,44 +201,22 @@ fun ProfileScreen(
 
                             Spacer(Modifier.height(12.dp))
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                StatChip(
-                                    modifier = Modifier.weight(1f),
-                                    title = stringResource(R.string.stat_created),
-                                    value = "—",
-                                    gold = gold,
-                                    fillBrush = cardBrush,
-                                    textPrimary = textPrimary,
-                                    textSecondary = textSecondary
-                                )
-                                StatChip(
-                                    modifier = Modifier.weight(1f),
-                                    title = stringResource(R.string.stat_opened),
-                                    value = "—",
-                                    gold = gold,
-                                    fillBrush = cardBrush,
-                                    textPrimary = textPrimary,
-                                    textSecondary = textSecondary
-                                )
-                                StatChip(
-                                    modifier = Modifier.weight(1f),
-                                    title = stringResource(R.string.stat_pending),
-                                    value = "—",
-                                    gold = gold,
-                                    fillBrush = cardBrush,
-                                    textPrimary = textPrimary,
-                                    textSecondary = textSecondary
-                                )
-                            }
+                            CapsuleStatusRow(
+                                label = "Pendientes",
+                                value = pendingCount,
+                                color = Color(0xFFFFC107)
+                            )
 
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = stringResource(R.string.desc_stats_placeholder),
-                                color = textSecondary,
-                                style = MaterialTheme.typography.bodySmall
+                            CapsuleStatusRow(
+                                label = "Cerradas",
+                                value = closedCount,
+                                color = Color(0xFF64B5F6)
+                            )
+
+                            CapsuleStatusRow(
+                                label = "Abiertas",
+                                value = openedCount,
+                                color = Color(0xFF81C784)
                             )
                         }
                     }
@@ -364,6 +356,43 @@ fun ProfileScreen(
         }
     }
 }
+
+@Composable
+private fun CapsuleStatusRow(
+    label: String,
+    value: Int,
+    color: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .background(color, RoundedCornerShape(50))
+        )
+
+        Spacer(Modifier.width(10.dp))
+
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Text(
+            text = value.toString(),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
 
 @Composable
 private fun StatChip(
