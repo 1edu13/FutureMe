@@ -21,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // ✅ Import necesario
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.futureme.R // ✅ Import necesario
 import com.example.futureme.data.model.Capsule
 import com.example.futureme.ui.theme.*
 import java.text.DateFormat
@@ -62,11 +64,24 @@ fun HomeCapsuleScreen(
             topBar = {
                 Column {
                     TopAppBar(
-                        title = { Text("MIS CÁPSULAS", color = OroAmbar, fontWeight = FontWeight.Black, letterSpacing = 2.sp) },
+                        title = {
+                            // ✅ CORREGIDO: Usar recurso
+                            Text(
+                                text = stringResource(R.string.home_title),
+                                color = OroAmbar,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp
+                            )
+                        },
                         navigationIcon = {
                             if (onMenuClick != null) {
                                 IconButton(onClick = onMenuClick) {
-                                    Icon(Icons.Default.Menu, contentDescription = "Menú", tint = OroAmbar)
+                                    // ✅ CORREGIDO: Usar recurso
+                                    Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = stringResource(R.string.content_desc_menu),
+                                        tint = OroAmbar
+                                    )
                                 }
                             } else {
                                 IconButton(onClick = { /* no-op */ }) {
@@ -85,7 +100,11 @@ fun HomeCapsuleScreen(
                     containerColor = if (isDark) OroAmbar else AzulProfundo,
                     contentColor = if (isDark) AzulProfundo else Color.White
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Crear")
+                    // ✅ CORREGIDO: Usar recurso
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.content_desc_create)
+                    )
                 }
             }
         ) { innerPadding ->
@@ -110,7 +129,12 @@ fun HomeCapsuleScreen(
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = OroAmbar)
                     ) {
-                        Text("UNIRSE A CÁPSULA", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        // ✅ CORREGIDO: Usar recurso
+                        Text(
+                            text = stringResource(R.string.btn_join_capsule),
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -128,8 +152,16 @@ fun HomeCapsuleScreen(
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(0.5f))
                         ) {
                             Column(modifier = Modifier.background(cardBrush).padding(20.dp)) {
-                                Text("Aún no tienes cápsulas", color = OroAmbar, fontWeight = FontWeight.Black)
-                                Text("Pulsa + para crear la primera.", color = MaterialTheme.colorScheme.onBackground.copy(0.7f))
+                                // ✅ CORREGIDOS: Textos de estado vacío
+                                Text(
+                                    text = stringResource(R.string.empty_capsules_title),
+                                    color = OroAmbar,
+                                    fontWeight = FontWeight.Black
+                                )
+                                Text(
+                                    text = stringResource(R.string.empty_capsules_msg),
+                                    color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
+                                )
                             }
                         }
                     }
@@ -179,7 +211,13 @@ private fun CapsuleItem(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            val label = if (isOpenable) "¡LISTA PARA ABRIR!" else "Se abrirá pronto"
+            // ✅ CORREGIDO: Lógica de etiqueta de estado
+            val label = if (isOpenable) {
+                stringResource(R.string.capsule_ready)
+            } else {
+                stringResource(R.string.capsule_wait)
+            }
+
             Text(
                 text = label,
                 color = if (isOpenable) OroAmbar else MaterialTheme.colorScheme.onSurface.copy(0.6f),
