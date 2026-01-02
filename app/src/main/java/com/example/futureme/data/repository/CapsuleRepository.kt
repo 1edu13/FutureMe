@@ -77,4 +77,14 @@ class CapsuleRepository(
     suspend fun joinCapsule(inviteCode: String, userId: String): Capsule {
         return dataSource.joinCapsule(inviteCode, userId)
     }
+
+    suspend fun deleteCapsule(capsuleId: String) {
+        dataSource.deleteCapsule(capsuleId)
+    }
+
+    suspend fun leaveCapsule(capsuleId: String, userId: String) {
+        dataSource.leaveCapsule(capsuleId, userId)
+    }
+
+
 }

@@ -48,6 +48,9 @@ class CapsuleDataSource(
         return Capsule(
             id = doc.id,
             creatorId = doc.getString("creatorId") ?: "",
+            ownerId = doc.getString("ownerId") ?: (doc.getString("creatorId") ?: ""), // fallback
+            participantIds = doc.get("participantIds") as? List<String> ?: emptyList(),
+
             title = doc.getString("title") ?: "",
             text = doc.getString("text") ?: "",
             createdAt = doc.getTimestamp("createdAt") ?: Timestamp.now(),
@@ -125,6 +128,50 @@ class CapsuleDataSource(
         val updated = db.collection("capsules").document(capsuleId).get().await()
         return mapDocumentToCapsule(updated)
     }
+
+    suspend fun deleteCapsule(capsuleId: String) {
+        db.collection("capsules")
+            .document(capsuleId)
+            .delete()
+            .await()
+    }
+
+    suspend fun leaveCapsule(capsuleId: String, userId: String) {
+        val docRef = db.collection("capsules").document(capsuleId)
+
+        db.runTransaction { tx ->
+            val snap = tx.get(docRef)
+            if (!snap.exists()) return@runTransaction
+
+            val participants = (snap.get("participantIds") as? List<String>)?.toMutableList() ?: mutableListOf()
+            if (!participants.contains(userId)) return@runTransaction
+
+            val ownerId = snap.getString("ownerId") ?: (snap.getString("creatorId") ?: "")
+
+            // Quitar al usuario
+            participants.remove(userId)
+
+            // 1) Si ya no queda nadie -> borrar documento
+            if (participants.isEmpty()) {
+                tx.delete(docRef)
+                return@runTransaction
+            }
+
+            // 2) Si el que se va es el anfitrión -> traspasar a otro
+            val updates = hashMapOf<String, Any>(
+                "participantIds" to participants,
+                "contributions.$userId" to FieldValue.delete() // opcional: borrar su contribución
+            )
+
+            if (ownerId == userId) {
+                updates["ownerId"] = participants.first() // simple y determinista
+            }
+
+            tx.update(docRef, updates)
+        }.await()
+    }
+
+
 
 
 }

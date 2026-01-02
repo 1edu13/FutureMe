@@ -222,4 +222,83 @@ class CapsuleViewModel : ViewModel() {
         }
     }
 
+    fun deleteCapsule(capsuleId: String) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _error.value = "Usuario no autenticado."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            _saveSuccess.value = false
+
+            try {
+                val capsule = _selectedCapsule.value?.takeIf { it.id == capsuleId }
+                    ?: capsuleRepository.getCapsuleById(capsuleId)
+
+                if (capsule == null) {
+                    _error.value = "La cápsula no existe."
+                    return@launch
+                }
+
+                // 🔒 Seguridad mínima: solo el creador puede borrar
+                if (capsule.creatorId != userId) {
+                    _error.value = "No tienes permisos para borrar esta cápsula."
+                    return@launch
+                }
+
+                // 1) Reunir TODAS las URLs (top-level + contribuciones)
+                val urls = buildList {
+                    addAll(capsule.images)
+                    capsule.contributions.values.forEach { data ->
+                        val imgs = data["images"] as? List<String> ?: emptyList()
+                        addAll(imgs)
+                    }
+                }
+
+                // 2) Borrar imágenes del Storage
+                storageRepository.deleteImagesByUrls(urls)
+
+                // 3) Borrar documento de Firestore
+                capsuleRepository.deleteCapsule(capsuleId)
+
+                // 4) Refrescar lista y limpiar selección
+                clearSelectedCapsule()
+                loadCapsules()
+
+                _saveSuccess.value = true
+            } catch (e: Exception) {
+                _error.value = "Error al eliminar: ${e.localizedMessage ?: e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun leaveCapsule(capsuleId: String) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _error.value = "Usuario no autenticado."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                capsuleRepository.leaveCapsule(capsuleId, userId)
+                clearSelectedCapsule()
+                loadCapsules()
+                _saveSuccess.value = true
+            } catch (e: Exception) {
+                _error.value = "Error al salir: ${e.localizedMessage ?: e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+
 }

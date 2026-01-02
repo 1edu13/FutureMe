@@ -194,7 +194,7 @@ private fun CapsuleDetailContent(
     cardBorder: Color,
     onImageClick: (List<String>, Int) -> Unit
 ) {
-    val isOwner = currentUserId != null && currentUserId == capsule.creatorId
+    val isOwner = currentUserId != null && currentUserId == capsule.ownerId
 
     LazyColumn(
         modifier = Modifier
@@ -388,6 +388,21 @@ private fun CapsuleDetailContent(
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
+                }
+            }
+        }
+        item {
+            SectionCardGradient("Acciones", gold, titleGold, cardBrush, cardBorder) {
+                Button(
+                    onClick = {
+                        viewModel.leaveCapsule(capsule.id)
+                        Toast.makeText(context, "Has salido de la cápsula", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color.Black),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Text("Eliminar cápsula")
                 }
             }
         }
