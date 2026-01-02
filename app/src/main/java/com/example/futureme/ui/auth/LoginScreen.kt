@@ -7,10 +7,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // ✅ Import necesario
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.futureme.R // ✅ Import necesario
 import com.example.futureme.ui.components.AppButton
 import com.example.futureme.ui.components.AppTextField
 import com.example.futureme.ui.theme.AppBackground
@@ -61,8 +63,15 @@ fun LoginScreenContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // ✅ CORREGIDO: Usar recursos para título dinámico
+            val titleText = if (authMode == AuthMode.LOGIN) {
+                stringResource(R.string.login_welcome)
+            } else {
+                stringResource(R.string.login_create_account)
+            }
+
             TitleBlock(
-                title = if (authMode == AuthMode.LOGIN) "Bienvenido de Nuevo" else "Crea tu Cuenta",
+                title = titleText,
                 isDark = isDark
             )
 
@@ -72,7 +81,7 @@ fun LoginScreenContent(
                 AppTextField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = "Nombre",
+                    placeholder = stringResource(R.string.placeholder_name), // ✅ CORREGIDO
                     enabled = !isLoading,
                     isDark = isDark
                 )
@@ -82,7 +91,7 @@ fun LoginScreenContent(
             AppTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = "Email",
+                placeholder = stringResource(R.string.placeholder_email), // ✅ CORREGIDO
                 keyboardType = KeyboardType.Email,
                 enabled = !isLoading,
                 isDark = isDark
@@ -93,7 +102,7 @@ fun LoginScreenContent(
             AppTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = "Contraseña",
+                placeholder = stringResource(R.string.placeholder_password), // ✅ CORREGIDO
                 enabled = !isLoading,
                 isDark = isDark,
                 isPassword = true
@@ -101,6 +110,8 @@ fun LoginScreenContent(
 
             if (!error.isNullOrBlank()) {
                 Spacer(Modifier.height(14.dp))
+                // Nota: 'error' viene del ViewModel. Si es un mensaje de Firebase (ej: "Bad password"), vendrá en inglés/idioma del sistema.
+                // Si quieres traducirlo, deberías mapear códigos de error en el ViewModel.
                 Text(text = error, color = Color(0xFFEF5350), fontSize = 14.sp)
             }
 
@@ -109,8 +120,15 @@ fun LoginScreenContent(
             if (isLoading) {
                 CircularProgressIndicator(color = OroAmbar)
             } else {
+                // ✅ CORREGIDO: Botón principal dinámico
+                val btnText = if (authMode == AuthMode.LOGIN) {
+                    stringResource(R.string.btn_login)
+                } else {
+                    stringResource(R.string.btn_register)
+                }
+
                 AppButton(
-                    text = if (authMode == AuthMode.LOGIN) "Iniciar Sesión" else "Registrarse",
+                    text = btnText,
                     onClick = {
                         if (authMode == AuthMode.LOGIN) onSignIn(email, password)
                         else onSignUp(name, email, password)
@@ -143,19 +161,30 @@ private fun TitleBlock(title: String, isDark: Boolean) {
 
 @Composable
 private fun AuthModeToggle(authMode: AuthMode, onToggle: () -> Unit) {
+    // ✅ CORREGIDO: Textos de alternancia (switch login/signup)
+    val questionText = if (authMode == AuthMode.LOGIN) {
+        stringResource(R.string.toggle_no_account)
+    } else {
+        stringResource(R.string.toggle_has_account)
+    }
+
+    val actionText = if (authMode == AuthMode.LOGIN) {
+        stringResource(R.string.action_register)
+    } else {
+        stringResource(R.string.action_login)
+    }
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = if (authMode == AuthMode.LOGIN) "¿No tienes cuenta? " else "¿Ya tienes cuenta? ",
+            text = questionText,
             color = GrisAzulado
         )
         TextButton(onClick = onToggle, contentPadding = PaddingValues(0.dp)) {
             Text(
-                text = if (authMode == AuthMode.LOGIN) "Regístrate" else "Inicia Sesión",
+                text = actionText,
                 color = OroAmbar,
                 fontWeight = FontWeight.Bold
             )
         }
     }
 }
-
-
