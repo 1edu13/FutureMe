@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource // ✅ Importante para las traducciones
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,12 +51,23 @@ fun MainMenuScreen(
                 Column {
                     TopAppBar(
                         title = {
-                            Text("MENÚ", color = gold, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                            // ✅ CORREGIDO: Usar recurso
+                            Text(
+                                text = stringResource(R.string.menu_title),
+                                color = gold,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp
+                            )
                         },
                         navigationIcon = {
                             if (onMenuClick != null) {
                                 IconButton(onClick = onMenuClick) {
-                                    Icon(Icons.Default.Menu, contentDescription = "Menú", tint = gold)
+                                    // ✅ CORREGIDO: Usar recurso
+                                    Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = stringResource(R.string.content_desc_menu),
+                                        tint = gold
+                                    )
                                 }
                             }
                         },
@@ -81,8 +93,9 @@ fun MainMenuScreen(
                     onClick = onGoToCapsules
                 ) {
                     Box(modifier = Modifier.background(cardBrush), contentAlignment = Alignment.Center) {
+                        // ✅ CORREGIDO: Usar recurso
                         Text(
-                            "MIS CÁPSULAS",
+                            text = stringResource(R.string.home_title),
                             color = textPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Black,
@@ -99,7 +112,7 @@ fun MainMenuScreen(
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     GoldImageCardButton(
-                        label = "Perfil",
+                        label = stringResource(R.string.menu_profile), // ✅ CORREGIDO
                         drawableRes = R.drawable.ic_profile_gold,
                         onClick = onGoToProfile,
                         modifier = Modifier.weight(1f),
@@ -110,7 +123,7 @@ fun MainMenuScreen(
                     )
 
                     GoldImageCardButton(
-                        label = "Ajustes",
+                        label = stringResource(R.string.menu_settings), // ✅ CORREGIDO
                         drawableRes = R.drawable.ic_settings_gold,
                         onClick = onGoToSettings,
                         modifier = Modifier.weight(1f),
