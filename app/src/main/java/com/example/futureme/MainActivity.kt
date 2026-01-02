@@ -37,7 +37,7 @@ import com.example.futureme.ui.theme.ThemeViewModelFactory
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-// ⚠️ Importante: Heredar de AppCompatActivity para soporte de idiomas nativo
+// ✅ CAMBIO 1: Heredar de AppCompatActivity para el idioma
 class MainActivity : AppCompatActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
             val isDark by themeVm.isDark.collectAsState()
 
-            // Detectar idioma actual
+            // ✅ CAMBIO 2: Detectar idioma actual
             val localeList = AppCompatDelegate.getApplicationLocales()
             val currentLanguageCode = if (!localeList.isEmpty) {
                 localeList[0]?.language ?: Locale.getDefault().language
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
                     currentLanguageCode = currentLanguageCode,
                     onToggleTheme = { enabled -> themeVm.setDark(enabled) },
                     onLanguageChange = { newCode ->
-                        // Lógica nativa de Android para cambiar idioma "Per-App"
+                        // ✅ CAMBIO 3: Cambiar idioma nativamente
                         val appLocale = LocaleListCompat.forLanguageTags(newCode)
                         AppCompatDelegate.setApplicationLocales(appLocale)
                     }
@@ -90,19 +90,14 @@ fun AppNavHost(
 ) {
     val navController = rememberNavController()
     val user by authViewModel.user.collectAsState()
-
-    // Estado onboarding (Firestore)
     val onboardingCompleted by authViewModel.onboardingCompleted.collectAsState()
 
-    // Saber en qué ruta estamos
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    // Drawer
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // --- Control automático entre Login y MENÚ PRINCIPAL ---
     LaunchedEffect(user) {
         val target = if (user == null) Screen.Login.route else Screen.MainMenu.route
         navController.navigate(target) {
@@ -111,26 +106,17 @@ fun AppNavHost(
         }
     }
 
-    // Cargar onboardingCompleted desde Firestore si hay usuario
     LaunchedEffect(user) {
         if (user != null) authViewModel.loadOnboardingState()
     }
 
-    // Ir a Onboarding si no se ha completado
     LaunchedEffect(user, onboardingCompleted, currentRoute) {
-        if (
-            user != null &&
-            onboardingCompleted == false &&
-            currentRoute != Screen.Onboarding.route
-        ) {
+        if (user != null && onboardingCompleted == false && currentRoute != Screen.Onboarding.route) {
             navController.navigate(Screen.Onboarding.route) { launchSingleTop = true }
         }
     }
 
-    val showDrawer =
-        user != null &&
-                currentRoute != Screen.Login.route &&
-                currentRoute != Screen.Onboarding.route
+    val showDrawer = user != null && currentRoute != Screen.Login.route && currentRoute != Screen.Onboarding.route
 
     if (showDrawer) {
         ModalNavigationDrawer(
@@ -164,7 +150,6 @@ fun AppNavHost(
             )
         }
     } else {
-        // Sin drawer (login / onboarding)
         AppNavContent(
             navController = navController,
             authViewModel = authViewModel,
@@ -195,16 +180,10 @@ private fun AppNavContent(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
-
-        // LOGIN
         composable(Screen.Login.route) {
-            LoginScreen(
-                authViewModel = authViewModel,
-                isDark = isDark
-            )
+            LoginScreen(authViewModel = authViewModel, isDark = isDark)
         }
 
-        // ONBOARDING
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 isDark = isDark,
@@ -219,7 +198,6 @@ private fun AppNavContent(
             )
         }
 
-        // MENÚ
         composable(Screen.MainMenu.route) {
             MainMenuScreen(
                 isDark = isDark,
@@ -230,22 +208,18 @@ private fun AppNavContent(
             )
         }
 
-        // HOME
         composable(Screen.Home.route) {
             HomeCapsuleScreen(
                 isDark = isDark,
                 userId = userId,
                 onMenuClick = onOpenDrawer,
                 capsuleViewModel = capsuleViewModel,
-                onCapsuleClick = { capsule ->
-                    navController.navigate(Screen.CapsuleDetail.createRoute(capsule.id))
-                },
+                onCapsuleClick = { capsule -> navController.navigate(Screen.CapsuleDetail.createRoute(capsule.id)) },
                 onNavigateToCreate = { navController.navigate(Screen.CreateCapsule.route) },
                 onJoinCapsule = { navController.navigate(Screen.JoinCapsule.route) }
             )
         }
 
-        // CREAR CÁPSULA
         composable(Screen.CreateCapsule.route) {
             CreateCapsuleScreen(
                 isDark = isDark,
@@ -254,7 +228,6 @@ private fun AppNavContent(
             )
         }
 
-        // UNIRSE A CÁPSULA
         composable(Screen.JoinCapsule.route) {
             JoinCapsuleScreen(
                 isDark = isDark,
@@ -264,7 +237,6 @@ private fun AppNavContent(
             )
         }
 
-        // PERFIL
         composable(Screen.Profile.route) {
             com.example.futureme.ui.profile.ProfileScreen(
                 authViewModel = authViewModel,
@@ -273,7 +245,6 @@ private fun AppNavContent(
             )
         }
 
-        // EDITAR CUENTA
         composable(Screen.EditAccount.route) {
             com.example.futureme.ui.profile.EditAccountScreen(
                 authViewModel = authViewModel,
@@ -281,7 +252,7 @@ private fun AppNavContent(
             )
         }
 
-        // AJUSTES
+        // ✅ CAMBIO 4: Pasar parámetros de idioma a SettingsScreen
         composable(Screen.Settings.route) {
             SettingsScreen(
                 isDark = isDark,
@@ -296,7 +267,6 @@ private fun AppNavContent(
             )
         }
 
-        // DETALLES
         composable(
             route = Screen.CapsuleDetail.route,
             arguments = listOf(navArgument("capsuleId") { type = NavType.StringType })
