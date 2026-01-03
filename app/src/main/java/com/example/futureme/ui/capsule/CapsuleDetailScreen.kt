@@ -59,6 +59,9 @@ fun CapsuleDetailScreen(
     val error by capsuleViewModel.error.collectAsState()
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
+    // 🔹 NUEVO: Observamos los nombres cargados
+    val contributorNames by capsuleViewModel.contributorNames.collectAsState()
+
     val context = LocalContext.current
     val currentUserId = remember { AuthRepository().getCurrentUser()?.uid }
 
@@ -153,6 +156,7 @@ fun CapsuleDetailScreen(
                     capsule != null -> CapsuleDetailContent(
                         capsule = capsule!!,
                         viewModel = capsuleViewModel,
+                        contributorNames = contributorNames, // 🔹 Pasamos el mapa
                         context = context,
                         currentUserId = currentUserId,
                         gold = gold,
@@ -186,6 +190,7 @@ fun CapsuleDetailScreen(
 private fun CapsuleDetailContent(
     capsule: Capsule,
     viewModel: CapsuleViewModel,
+    contributorNames: Map<String, String>, // 🔹 Recibimos el mapa
     context: Context,
     currentUserId: String?,
     gold: Color,
@@ -331,8 +336,11 @@ private fun CapsuleDetailContent(
                     val userText = data["text"] as? String ?: ""
                     val images = data["images"] as? List<String> ?: emptyList()
 
+                    // 🔹 Obtenemos el nombre del mapa, o fallback al ID recortado
+                    val displayName = contributorNames[userId] ?: userId.take(10) + "…"
+
                     ContributionSection(
-                        userId = userId,
+                        userName = displayName, // 🔹 Usamos el nombre
                         isCreator = (userId == capsule.creatorId),
                         text = userText,
                         images = images,
@@ -405,8 +413,6 @@ private fun CapsuleDetailContent(
 
             SectionCardGradient(stringResource(R.string.section_actions), gold, titleGold, cardBrush, cardBorder) {
 
-                // ✅ SOLO aparece si hay imágenes
-                // ✅ SOLO aparece si está ABIERTA y hay imágenes
                 if (capsule.isOpenable() && allImages.isNotEmpty()) {
                     Button(
                         onClick = {
@@ -429,7 +435,6 @@ private fun CapsuleDetailContent(
                     Spacer(Modifier.height(12.dp))
                 }
 
-                // ✅ Salir / Abandonar (siempre visible)
                 val msgLeft = stringResource(R.string.msg_capsule_left)
                 Button(
                     onClick = {
@@ -452,7 +457,7 @@ private fun CapsuleDetailContent(
 
 @Composable
 private fun ContributionSection(
-    userId: String,
+    userName: String, // 🔹 Cambiado userId -> userName
     isCreator: Boolean,
     text: String,
     images: List<String>,
@@ -504,7 +509,7 @@ private fun ContributionSection(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = userId.take(10) + "…",
+                        text = userName, // 🔹 Mostramos el nombre real
                         color = textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )

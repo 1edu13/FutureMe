@@ -18,6 +18,7 @@ class CapsuleViewModel : ViewModel() {
 
     private val capsuleRepository = CapsuleRepository()
     private val storageRepository = StorageRepository()
+    // Instanciamos AuthRepository (ahora con getUserName)
     private val authRepository = AuthRepository()
 
     private val _saveSuccess = MutableStateFlow(false)
@@ -34,6 +35,10 @@ class CapsuleViewModel : ViewModel() {
 
     private val _selectedCapsule = MutableStateFlow<Capsule?>(null)
     val selectedCapsule: StateFlow<Capsule?> = _selectedCapsule
+
+    // 🔹 NUEVO: Mapa para guardar ID -> Nombre de usuario real
+    private val _contributorNames = MutableStateFlow<Map<String, String>>(emptyMap())
+    val contributorNames: StateFlow<Map<String, String>> = _contributorNames
 
     fun loadCapsules() {
         val userId = authRepository.getCurrentUser()?.uid
@@ -61,11 +66,25 @@ class CapsuleViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _selectedCapsule.value = capsuleRepository.getCapsuleById(capsuleId)
-                    ?: run {
-                        _error.value = "La cápsula no existe."
-                        null
+                val cap = capsuleRepository.getCapsuleById(capsuleId)
+                _selectedCapsule.value = cap
+
+                if (cap == null) {
+                    _error.value = "La cápsula no existe."
+                } else {
+                    // 🔹 LÓGICA NUEVA: Cargar nombres de los participantes
+                    val ids = cap.contributions.keys
+                    val namesMap = mutableMapOf<String, String>()
+
+                    ids.forEach { uid ->
+                        // Pedimos el nombre al AuthRepository (que consulta Firestore)
+                        val name = authRepository.getUserName(uid)
+                        if (!name.isNullOrBlank()) {
+                            namesMap[uid] = name
+                        }
                     }
+                    _contributorNames.value = namesMap
+                }
             } catch (e: Exception) {
                 Log.e("CapsuleViewModel", "Error loading capsule details", e)
                 _error.value = "Error al cargar la cápsula: ${e.localizedMessage}"
@@ -96,10 +115,8 @@ class CapsuleViewModel : ViewModel() {
             _saveSuccess.value = false
 
             try {
-                // 1. Subir imágenes a Storage (repo)
                 val imageUrls = storageRepository.uploadImages(context, userId, imageUris)
 
-                // 2. Guardar cápsula (repo)
                 capsuleRepository.saveCapsule(
                     userId = userId,
                     title = title,
@@ -110,9 +127,7 @@ class CapsuleViewModel : ViewModel() {
                     imageUrls = imageUrls
                 )
 
-                // 3. Volver a cargar la lista
                 loadCapsules()
-
                 _saveSuccess.value = true
 
             } catch (e: Exception) {
@@ -123,6 +138,7 @@ class CapsuleViewModel : ViewModel() {
             }
         }
     }
+
     fun updateContribution(
         capsuleId: String,
         text: String,
@@ -141,7 +157,6 @@ class CapsuleViewModel : ViewModel() {
             _saveSuccess.value = false
 
             try {
-                // 0) Asegurarnos de tener la cápsula cargada (para leer lo anterior)
                 val capsule = _selectedCapsule.value?.takeIf { it.id == capsuleId }
                     ?: capsuleRepository.getCapsuleById(capsuleId)
 
@@ -154,20 +169,15 @@ class CapsuleViewModel : ViewModel() {
                 val oldText = oldContribution?.get("text") as? String ?: ""
                 val oldImages = oldContribution?.get("images") as? List<String> ?: emptyList()
 
-                // 1) Subir SOLO las nuevas imágenes (si hay)
                 val newImageUrls = storageRepository.uploadImages(context, userId, imageUris)
-
-                // 2) Mezclar imágenes (no borrar las antiguas)
                 val finalImages = oldImages + newImageUrls
 
-                // 3) Mezclar texto (no borrar el antiguo)
                 val finalText = when {
                     text.isBlank() -> oldText
                     oldText.isBlank() -> text
                     else -> oldText + "\n\n" + text
                 }
 
-                // 4) Guardar contribución mezclada
                 capsuleRepository.updateContribution(
                     capsuleId = capsuleId,
                     userId = userId,
@@ -175,7 +185,6 @@ class CapsuleViewModel : ViewModel() {
                     imageUrls = finalImages
                 )
 
-                // 5) Recargar detalles
                 loadCapsuleById(capsuleId)
                 _saveSuccess.value = true
 
@@ -187,10 +196,10 @@ class CapsuleViewModel : ViewModel() {
         }
     }
 
-
-
     fun clearSelectedCapsule() {
         _selectedCapsule.value = null
+        // 🔹 Limpiamos también los nombres
+        _contributorNames.value = emptyMap()
     }
 
     fun joinCapsule(code: String) {
@@ -205,16 +214,11 @@ class CapsuleViewModel : ViewModel() {
             _error.value = null
 
             try {
-                // Limpiamos espacios en blanco por si acaso al copiar/pegar
                 capsuleRepository.joinCapsule(code.trim(), userId)
-
-                // Volvemos a cargar las cápsulas del usuario
                 loadCapsules()
-
                 _saveSuccess.value = true
             } catch (e: Exception) {
                 Log.e("CapsuleViewModel", "Error joining capsule", e)
-                // Mostramos el error real para facilitar el debug
                 _error.value = "Error al unirse: ${e.localizedMessage ?: "Error desconocido"}"
             } finally {
                 _isLoading.value = false
@@ -243,13 +247,11 @@ class CapsuleViewModel : ViewModel() {
                     return@launch
                 }
 
-                // 🔒 Seguridad mínima: solo el creador puede borrar
                 if (capsule.creatorId != userId) {
                     _error.value = "No tienes permisos para borrar esta cápsula."
                     return@launch
                 }
 
-                // 1) Reunir TODAS las URLs (top-level + contribuciones)
                 val urls = buildList {
                     addAll(capsule.images)
                     capsule.contributions.values.forEach { data ->
@@ -258,13 +260,9 @@ class CapsuleViewModel : ViewModel() {
                     }
                 }
 
-                // 2) Borrar imágenes del Storage
                 storageRepository.deleteImagesByUrls(urls)
-
-                // 3) Borrar documento de Firestore
                 capsuleRepository.deleteCapsule(capsuleId)
 
-                // 4) Refrescar lista y limpiar selección
                 clearSelectedCapsule()
                 loadCapsules()
 
@@ -299,6 +297,4 @@ class CapsuleViewModel : ViewModel() {
             }
         }
     }
-
-
 }

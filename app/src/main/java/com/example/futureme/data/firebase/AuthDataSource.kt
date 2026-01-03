@@ -80,6 +80,14 @@ class AuthDataSource(
         db.collection("users").document(uid).update("onboardingCompleted", completed).await()
     }
 
+    suspend fun getUserName(uid: String): String? {
+        return try {
+            val doc = db.collection("users").document(uid).get().await()
+            doc.getString("name")
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
 

@@ -97,5 +97,8 @@ class AuthRepository(
         dataSource.setOnboardingCompleted(user.uid, completed)
     }
 
-
+    // 🔹 NUEVO: Expuesto para CapsuleViewModel
+    suspend fun getUserName(uid: String): String? {
+        return dataSource.getUserName(uid)
+    }
 }
