@@ -148,4 +148,7 @@
     <string name="download_notification_title">FutureMe: %s</string>
     <string name="download_notification_desc">Stahování obrázku %1$d/%2$d</string>
     <string name="msg_download_started">Stahování zahájeno (%d obrázků)</string>
+
+    <string name="lbl_capsules_status">Stav kapslí</string>
+    <string name="stat_closed">Uzavřené</string>
 </resources>

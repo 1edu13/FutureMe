@@ -178,7 +178,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    // ---- Estadísticas (placeholder) ----
+                    // ---- Estadísticas (con Strings) ----
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,
@@ -193,7 +193,7 @@ fun ProfileScreen(
                                 .padding(16.dp)
                         ) {
                             Text(
-                                text = "Estado de tus cápsulas",
+                                text = stringResource(R.string.lbl_capsules_status),
                                 color = titleGold,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
@@ -202,19 +202,19 @@ fun ProfileScreen(
                             Spacer(Modifier.height(12.dp))
 
                             CapsuleStatusRow(
-                                label = "Pendientes",
+                                label = stringResource(R.string.stat_pending),
                                 value = pendingCount,
                                 color = Color(0xFFFFC107)
                             )
 
                             CapsuleStatusRow(
-                                label = "Cerradas",
+                                label = stringResource(R.string.stat_closed),
                                 value = closedCount,
                                 color = Color(0xFF64B5F6)
                             )
 
                             CapsuleStatusRow(
-                                label = "Abiertas",
+                                label = stringResource(R.string.stat_opened),
                                 value = openedCount,
                                 color = Color(0xFF81C784)
                             )

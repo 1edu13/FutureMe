@@ -148,4 +148,7 @@
     <string name="download_notification_title">FutureMe: %s</string>
     <string name="download_notification_desc">Downloading image %1$d/%2$d</string>
     <string name="msg_download_started">Download started (%d images)</string>
+
+    <string name="lbl_capsules_status">Capsule status</string>
+    <string name="stat_closed">Closed</string>
 </resources>
