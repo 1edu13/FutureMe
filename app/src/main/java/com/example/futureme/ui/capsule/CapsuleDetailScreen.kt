@@ -739,7 +739,7 @@ private fun ContributionFormStyled(
             modifier = Modifier.alpha(0.9f)
         )
     }
-
+//
     Button(
         onClick = {
             viewModel.updateContribution(capsuleId, text, selectedImageUris, context)
