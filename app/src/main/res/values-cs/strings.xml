@@ -139,4 +139,13 @@
     <string name="onboard_3_body">Zadejte název, přidejte text a obrázky.\nZvolte datum a nechte čas plynout.</string>
     <string name="onboard_4_title">SDÍLET</string>
     <string name="onboard_4_body">Pokud je kapsle sdílená, pozvěte přátele.\nVšichni ji uvidíte ve stejnou chvíli.</string>
+
+    <string name="lbl_capsule_code_clip">Kód kapsle</string>
+    <string name="btn_download_all_photos">Stáhnout všechny fotky</string>
+    <string name="btn_delete_capsule_action">Smazat kapsli</string>
+    <string name="msg_capsule_left">Opustili jste kapsli</string>
+    <string name="msg_no_images_to_download">Žádné obrázky ke stažení</string>
+    <string name="download_notification_title">FutureMe: %s</string>
+    <string name="download_notification_desc">Stahování obrázku %1$d/%2$d</string>
+    <string name="msg_download_started">Stahování zahájeno (%d obrázků)</string>
 </resources>

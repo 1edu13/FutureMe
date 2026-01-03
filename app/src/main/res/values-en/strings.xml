@@ -139,4 +139,13 @@
     <string name="onboard_3_body">Set a title, add text and images.\nChoose a date and let time pass.</string>
     <string name="onboard_4_title">SHARE</string>
     <string name="onboard_4_body">If a capsule is shared, invite friends.\nYou will all see it at the same time.</string>
+
+    <string name="lbl_capsule_code_clip">Capsule code</string>
+    <string name="btn_download_all_photos">Download all photos</string>
+    <string name="btn_delete_capsule_action">Delete capsule</string>
+    <string name="msg_capsule_left">You have left the capsule</string>
+    <string name="msg_no_images_to_download">No images to download</string>
+    <string name="download_notification_title">FutureMe: %s</string>
+    <string name="download_notification_desc">Downloading image %1$d/%2$d</string>
+    <string name="msg_download_started">Download started (%d images)</string>
 </resources>

@@ -1,8 +1,10 @@
 package com.example.futureme.ui.capsule
 
+import android.app.DownloadManager
 import android.content.ClipData
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -43,9 +45,6 @@ import com.example.futureme.data.model.Capsule
 import com.example.futureme.data.repository.AuthRepository
 import com.example.futureme.ui.theme.*
 import java.text.DateFormat
-import android.app.DownloadManager
-import android.os.Environment
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -240,10 +239,11 @@ private fun CapsuleDetailContent(
                             )
 
                             val copyMsg = stringResource(R.string.msg_code_copied)
+                            val labelCode = stringResource(R.string.lbl_capsule_code_clip)
                             IconButton(onClick = {
                                 val clipboard =
                                     context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = ClipData.newPlainText("Código cápsula", capsule.inviteCode)
+                                val clip = ClipData.newPlainText(labelCode, capsule.inviteCode)
                                 clipboard.setPrimaryClip(clip)
                                 Toast.makeText(context, copyMsg, Toast.LENGTH_SHORT).show()
                             }) {
@@ -366,7 +366,6 @@ private fun CapsuleDetailContent(
 
                         Spacer(Modifier.height(12.dp))
 
-                        // ✅ Mantengo tu función y firma (para que no rompa)
                         ContributionFormStyled(
                             capsuleId = capsule.id,
                             viewModel = viewModel,
@@ -404,7 +403,7 @@ private fun CapsuleDetailContent(
                 }
             }.distinct()
 
-            SectionCardGradient("Acciones", gold, titleGold, cardBrush, cardBorder) {
+            SectionCardGradient(stringResource(R.string.section_actions), gold, titleGold, cardBrush, cardBorder) {
 
                 // ✅ SOLO aparece si hay imágenes
                 // ✅ SOLO aparece si está ABIERTA y hay imágenes
@@ -424,17 +423,18 @@ private fun CapsuleDetailContent(
                         ),
                         shape = RoundedCornerShape(18.dp)
                     ) {
-                        Text("Descargar todas las fotos")
+                        Text(stringResource(R.string.btn_download_all_photos))
                     }
 
                     Spacer(Modifier.height(12.dp))
                 }
 
                 // ✅ Salir / Abandonar (siempre visible)
+                val msgLeft = stringResource(R.string.msg_capsule_left)
                 Button(
                     onClick = {
                         viewModel.leaveCapsule(capsule.id)
-                        Toast.makeText(context, "Has salido de la cápsula", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, msgLeft, Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
@@ -443,7 +443,7 @@ private fun CapsuleDetailContent(
                     ),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    Text("Eliminar capsula")
+                    Text(stringResource(R.string.btn_delete_capsule_action))
                 }
             }
         }
@@ -799,7 +799,8 @@ private fun downloadAllCapsuleImages(
     urls: List<String>
 ) {
     if (urls.isEmpty()) {
-        Toast.makeText(context, "No hay imágenes para descargar", Toast.LENGTH_SHORT).show()
+        val msg = context.getString(R.string.msg_no_images_to_download)
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -814,12 +815,15 @@ private fun downloadAllCapsuleImages(
 
     urls.distinct().forEachIndexed { index, url ->
         runCatching {
+            val title = context.getString(R.string.download_notification_title, safeTitle)
+            val desc = context.getString(R.string.download_notification_desc, index + 1, urls.size)
+
             val req = DownloadManager.Request(Uri.parse(url))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setAllowedOverMetered(true)
                 .setAllowedOverRoaming(true)
-                .setTitle("FutureMe: $safeTitle")
-                .setDescription("Descargando imagen ${index + 1}/${urls.size}")
+                .setTitle(title)
+                .setDescription(desc)
                 .setDestinationInExternalPublicDir(
                     Environment.DIRECTORY_DOWNLOADS,
                     "FutureMe_${safeTitle}_${index + 1}.jpg"
@@ -829,5 +833,6 @@ private fun downloadAllCapsuleImages(
         }
     }
 
-    Toast.makeText(context, "Descarga iniciada (${urls.size} imágenes)", Toast.LENGTH_SHORT).show()
+    val msgStarted = context.getString(R.string.msg_download_started, urls.size)
+    Toast.makeText(context, msgStarted, Toast.LENGTH_SHORT).show()
 }
