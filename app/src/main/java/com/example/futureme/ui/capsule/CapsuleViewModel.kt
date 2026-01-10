@@ -71,7 +71,11 @@ class CapsuleViewModel : ViewModel() {
                 if (cap == null) {
                     _error.value = "La cápsula no existe."
                 } else {
-                    val ids = cap.contributions.keys
+                    val ids = buildSet {
+                        addAll(cap.contributions.keys)
+                        add(cap.creatorId)
+                        add(cap.ownerId)
+                    }
                     val namesMap = mutableMapOf<String, String>()
 
                     ids.forEach { uid ->
