@@ -35,7 +35,10 @@ fun JoinCapsuleScreen(
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
     LaunchedEffect(saveSuccess) {
-        if (saveSuccess) onJoined()
+        if (saveSuccess) {
+            capsuleViewModel.clearSaveSuccess()
+            onJoined()
+        }
     }
 
     JoinCapsuleScreenContent(
