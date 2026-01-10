@@ -33,7 +33,6 @@ class CapsuleRepository(
         val openCal = (openDateTime.clone() as Calendar)
         if (openCal.before(deadlineCal)) {
             openCal.timeInMillis = deadlineCal.timeInMillis
-            // opcional: openCal.add(Calendar.MINUTE, 1)
         }
         val inviteCode = UUID.randomUUID()
             .toString()

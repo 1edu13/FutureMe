@@ -36,7 +36,6 @@ class CapsuleViewModel : ViewModel() {
     private val _selectedCapsule = MutableStateFlow<Capsule?>(null)
     val selectedCapsule: StateFlow<Capsule?> = _selectedCapsule
 
-    // 🔹 NUEVO: Mapa para guardar ID -> Nombre de usuario real
     private val _contributorNames = MutableStateFlow<Map<String, String>>(emptyMap())
     val contributorNames: StateFlow<Map<String, String>> = _contributorNames
 
@@ -72,12 +71,10 @@ class CapsuleViewModel : ViewModel() {
                 if (cap == null) {
                     _error.value = "La cápsula no existe."
                 } else {
-                    // 🔹 LÓGICA NUEVA: Cargar nombres de los participantes
                     val ids = cap.contributions.keys
                     val namesMap = mutableMapOf<String, String>()
 
                     ids.forEach { uid ->
-                        // Pedimos el nombre al AuthRepository (que consulta Firestore)
                         val name = authRepository.getUserName(uid)
                         if (!name.isNullOrBlank()) {
                             namesMap[uid] = name
@@ -296,5 +293,9 @@ class CapsuleViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearSaveSuccess() {
+        _saveSuccess.value = false
     }
 }

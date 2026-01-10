@@ -37,7 +37,6 @@ fun AppBackground(
                     contentScale = ContentScale.Crop
                 )
 
-                // Overlay MUY suave (para que no se apague el fondo)
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -96,7 +95,6 @@ fun AppBackground(
             }
 
             BackgroundType.GRADIENT -> {
-                // DARK (tu “cielo nocturno”) vs LIGHT (tu paleta clara)
                 val colors = if (isDark) {
                     listOf(
                         Color(0xFF132F4C),
@@ -104,9 +102,9 @@ fun AppBackground(
                     )
                 } else {
                     listOf(
-                        Color(0xFFF4F8FC), // casi blanco azulado
-                        Color(0xFFCFE4F6), // azul claro principal
-                        Color(0xFF9EC2E6)  // bordes un poco más profundos
+                        Color(0xFFF4F8FC),
+                        Color(0xFFCFE4F6),
+                        Color(0xFF9EC2E6)
                     )
                 }
 

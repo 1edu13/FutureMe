@@ -5,7 +5,6 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.FieldValue
-import java.util.Calendar
 
 class CapsuleDataSource(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -37,8 +36,6 @@ class CapsuleDataSource(
     }
 
     private fun mapDocumentToCapsule(doc: com.google.firebase.firestore.DocumentSnapshot): Capsule {
-        // Si la cápsula no tiene fecha límite (es antigua), usamos la fecha de apertura como límite
-        // para que siga siendo editable. Las nuevas cápsulas sí tendrán editDeadline.
         val openDate = doc.getTimestamp("openDate") ?: Timestamp.now()
         val editDeadline = doc.getTimestamp("editDeadline") ?: openDate
         val isShared = doc.getBoolean("isShared") ?: false
@@ -105,9 +102,6 @@ class CapsuleDataSource(
         val capsuleDoc = querySnap.documents.first()
         val capsuleId = capsuleDoc.id
 
-        // 2) A partir de aquí, sigues como antes pero usando capsuleId REAL
-        //    (añadir al array members, o contributions, o lo que estés haciendo)
-        // 2) Unirse de verdad (tu esquema usa participantIds)
         db.collection("capsules")
             .document(capsuleId)
             .update("participantIds", FieldValue.arrayUnion(userId))
@@ -123,8 +117,6 @@ class CapsuleDataSource(
             .update("contributions.$userId", contributionData)
             .await()
 
-
-        // 3) Devuelve la cápsula actualizada (si tu código lo requiere)
         val updated = db.collection("capsules").document(capsuleId).get().await()
         return mapDocumentToCapsule(updated)
     }
@@ -148,16 +140,13 @@ class CapsuleDataSource(
 
             val ownerId = snap.getString("ownerId") ?: (snap.getString("creatorId") ?: "")
 
-            // Quitar al usuario
             participants.remove(userId)
 
-            // 1) Si ya no queda nadie -> borrar documento
             if (participants.isEmpty()) {
                 tx.delete(docRef)
                 return@runTransaction
             }
 
-            // 2) Si el que se va es el anfitrión -> traspasar a otro
             val updates = hashMapOf<String, Any>(
                 "participantIds" to participants,
                 "contributions.$userId" to FieldValue.delete() // opcional: borrar su contribución

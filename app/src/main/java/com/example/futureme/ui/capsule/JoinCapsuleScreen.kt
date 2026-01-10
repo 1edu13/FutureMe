@@ -56,13 +56,11 @@ fun JoinCapsuleScreenContent(
     onNavigateBack: () -> Unit,
     isDark: Boolean
 ) {
-    // 🎨 Paleta igual que Settings (según tu Color.kt)
     val gold = OroAmbar
     val titleColor = if (isDark) gold else AzulProfundo
     val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
     val textSecondary = if (isDark) GrisAzulado else ClaroBorde
 
-    // Card premium (degradado dentro del “marco”, encima del fondo radial)
     val cardBrush = if (isDark) {
         Brush.verticalGradient(listOf(AzulSuperficie, AzulProfundo))
     } else {
@@ -74,7 +72,6 @@ fun JoinCapsuleScreenContent(
     val scrollState = rememberScrollState()
     val canJoin = !isLoading && code.trim().isNotBlank()
 
-    // ✅ SOLO degradado (sin imagen) usando tu AppBackground
     AppBackground(type = BackgroundType.GRADIENT, isDark = isDark) {
         Scaffold(
             containerColor = Color.Transparent,

@@ -22,7 +22,6 @@ class AuthDataSource(
         val user = result.user ?: throw Exception("No se pudo crear el usuario")
         val uid = user.uid
 
-        // 🔹 Guardamos perfil en Firestore
         val userProfile = hashMapOf(
             "name" to name,
             "email" to email,
@@ -32,7 +31,6 @@ class AuthDataSource(
 
         db.collection("users").document(uid).set(userProfile).await()
 
-        // 🔹 Guardamos displayName en Firebase Auth
         val request = userProfileChangeRequest {
             displayName = name
         }
@@ -48,11 +46,6 @@ class AuthDataSource(
     fun addAuthStateListener(listener: (FirebaseAuth) -> Unit) {
         auth.addAuthStateListener(listener)
     }
-
-    // =========================
-    // PERFIL / CUENTA
-    // =========================
-
     suspend fun updateDisplayName(user: FirebaseUser, newName: String) {
         // 🔹 Firebase Auth
         val request = userProfileChangeRequest {

@@ -2,13 +2,11 @@ package com.example.futureme.ui.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -37,12 +35,10 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onShowTutorialAgain: () -> Unit
 ) {
-    // 🎨 USANDO TU PALETA DE COLOR.KT
     val gold = OroAmbar
     val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
     val textSecondary = if (isDark) GrisAzulado else ClaroBorde
 
-    // --- EFECTO SEDA/CRISTAL PREMIUM PARA EL CUADRO ---
     val cardBrush = if (isDark) {
         Brush.verticalGradient(listOf(AzulSuperficie, AzulProfundo))
     } else {
@@ -51,10 +47,8 @@ fun SettingsScreen(
 
     val cardBorder = if (isDark) gold.copy(alpha = 0.3f) else ClaroBorde.copy(alpha = 0.8f)
 
-    // Estado del diálogo de idioma
     var showLanguageDialog by remember { mutableStateOf(false) }
 
-    // Mapa de idiomas disponibles
     val languages = listOf(
         "es" to "Español",
         "en" to "English",
@@ -131,7 +125,6 @@ fun SettingsScreen(
                             color = gold.copy(alpha = 0.15f)
                         )
 
-                        // Selector de idioma
                         SettingRow(
                             icon = { Icon(Icons.Default.Language, contentDescription = null, tint = gold) },
                             title = stringResource(R.string.setting_language),
@@ -181,7 +174,6 @@ fun SettingsScreen(
         }
     }
 
-    // --- DIÁLOGO DE SELECCIÓN DE IDIOMA ---
     if (showLanguageDialog) {
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
@@ -212,7 +204,7 @@ fun SettingsScreen(
                         ) {
                             RadioButton(
                                 selected = (code == currentLanguageCode),
-                                onClick = null, // null para que el Row maneje el click
+                                onClick = null,
                                 colors = RadioButtonDefaults.colors(
                                     selectedColor = gold,
                                     unselectedColor = textSecondary

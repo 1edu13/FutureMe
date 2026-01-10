@@ -32,13 +32,7 @@ class AuthRepository(
         dataSource.signOut()
     }
 
-    // =========================
-    // 🔐 PERFIL / CUENTA
-    // =========================
 
-    /**
-     * Firebase exige reautenticación para acciones sensibles
-     */
     suspend fun reauthenticate(currentPassword: String) {
         val user = dataSource.currentUser()
             ?: throw IllegalStateException("No hay usuario autenticado")
@@ -50,9 +44,6 @@ class AuthRepository(
         user.reauthenticate(credential).await()
     }
 
-    /**
-     * Cambiar nombre visible (displayName)
-     */
     suspend fun updateDisplayName(newName: String) {
         val user = dataSource.currentUser()
             ?: throw IllegalStateException("No hay usuario autenticado")
@@ -60,9 +51,6 @@ class AuthRepository(
         dataSource.updateDisplayName(user, newName)
     }
 
-    /**
-     * Cambiar contraseña (requiere reauth antes)
-     */
     suspend fun updatePassword(newPassword: String) {
         val user = dataSource.currentUser()
             ?: throw IllegalStateException("No hay usuario autenticado")
@@ -70,20 +58,14 @@ class AuthRepository(
         user.updatePassword(newPassword).await()
     }
 
-    /**
-     * Eliminar cuenta definitivamente (requiere reauth antes)
-     */
     suspend fun deleteAccount() {
         val user = dataSource.currentUser()
             ?: throw IllegalStateException("No hay usuario autenticado")
 
-        // 1) Borra perfil en Firestore
         dataSource.deleteUserProfile(user.uid)
 
-        // 2) Borra usuario en Firebase Auth
         user.delete().await()
 
-        // 3) Limpieza
         dataSource.signOut()
     }
 
@@ -97,7 +79,6 @@ class AuthRepository(
         dataSource.setOnboardingCompleted(user.uid, completed)
     }
 
-    // 🔹 NUEVO: Expuesto para CapsuleViewModel
     suspend fun getUserName(uid: String): String? {
         return dataSource.getUserName(uid)
     }

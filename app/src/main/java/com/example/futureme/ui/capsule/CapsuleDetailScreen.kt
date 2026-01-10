@@ -59,13 +59,11 @@ fun CapsuleDetailScreen(
     val error by capsuleViewModel.error.collectAsState()
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
-    // 🔹 NUEVO: Observamos los nombres cargados
     val contributorNames by capsuleViewModel.contributorNames.collectAsState()
 
     val context = LocalContext.current
     val currentUserId = remember { AuthRepository().getCurrentUser()?.uid }
 
-    // Fullscreen viewer state
     var viewerUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     var viewerIndex by remember { mutableStateOf(0) }
     var showViewer by remember { mutableStateOf(false) }
@@ -83,7 +81,6 @@ fun CapsuleDetailScreen(
         onDispose { capsuleViewModel.clearSelectedCapsule() }
     }
 
-    // ---- Paleta (mismo enfoque que Settings) ----
     val gold = OroAmbar
     val titleGold = if (isDark) OroAmbar else AzulProfundo
     val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
@@ -210,7 +207,7 @@ private fun CapsuleDetailContent(
         contentPadding = PaddingValues(top = 16.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // 1) CÓDIGO INVITACIÓN (solo owner + compartida + editable + NO abierta)
+        // CÓDIGO INVITACIÓN (solo owner + compartida + editable + NO abierta)
         if (isOwner && capsule.isShared && capsule.isEditable() && !capsule.isOpenable()) {
             item {
                 SectionCardGradient(stringResource(R.string.section_invitation), gold, titleGold, cardBrush, cardBorder) {
@@ -260,7 +257,7 @@ private fun CapsuleDetailContent(
             }
         }
 
-        // 2) CABECERA DE ESTADO
+        // CABECERA DE ESTADO
         item {
             val openDate = capsule.openDate.toDate()
             val stateTitle = if (capsule.isOpenable()) stringResource(R.string.status_open) else stringResource(R.string.status_closed)
@@ -316,7 +313,6 @@ private fun CapsuleDetailContent(
             }
         }
 
-        // 3) ABIERTA -> SECCIONES POR USUARIO
         if (capsule.isOpenable()) {
             val entries = capsule.contributions.toList()
 
@@ -355,7 +351,6 @@ private fun CapsuleDetailContent(
                 }
             }
         } else {
-            // 4) CERRADA -> FORMULARIO SI EDITABLE
             item {
                 if (capsule.isEditable()) {
                     val deadline = capsule.editDeadline.toDate()
@@ -457,7 +452,7 @@ private fun CapsuleDetailContent(
 
 @Composable
 private fun ContributionSection(
-    userName: String, // 🔹 Cambiado userId -> userName
+    userName: String,
     isCreator: Boolean,
     text: String,
     images: List<String>,

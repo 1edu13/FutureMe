@@ -26,7 +26,6 @@ class StorageRepository(
             try {
                 storage.getReferenceFromUrl(url).delete().await()
             } catch (_: Exception) {
-                // Si alguna ya no existe o URL rara, no petamos el borrado entero
             }
         }
     }

@@ -11,9 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// ─────────────────────────────
-// 🌙 DARK COLOR SCHEME
-// ─────────────────────────────
 private val DarkColorScheme = darkColorScheme(
     primary = OroAmbar,
     secondary = Color(0xFFFFD54F),
@@ -30,23 +27,20 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = BlancoAzulado
 )
 
-// ─────────────────────────────
-// ☀️ LIGHT COLOR SCHEME
-// ─────────────────────────────
 private val LightColorScheme = lightColorScheme(
     primary = OroAmbar,
     onPrimary = Color.White,
     background = ClaroBase,
-    surface = ClaroSuave,           // Las tarjetas usarán el color Arena
-    onBackground = TextoCafe,       // El texto será Café oscuro
+    surface = ClaroSuave,
+    onBackground = TextoCafe,
     onSurface = TextoCafe,
-    outline = ClaroBorde            // Bordes nítidos
+    outline = ClaroBorde
 )
 
 @Composable
 fun FutureMeTheme(
     darkTheme: Boolean,
-    dynamicColor: Boolean = false, // ❌ mejor desactivado para tu diseño
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

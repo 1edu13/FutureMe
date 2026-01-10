@@ -49,7 +49,6 @@ fun ProfileScreen(
         !it.isOpenable() && !it.isEditable()
     }
 
-    // 🎨 Paleta (igual enfoque que Settings)
     val gold = OroAmbar
     val titleGold = if (isDark) OroAmbar else AzulProfundo
     val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
@@ -65,7 +64,6 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Snackbars (error/success) — MISMA LÓGICA
     LaunchedEffect(error) {
         if (!error.isNullOrBlank()) {
             snackbarHostState.showSnackbar(error!!)
@@ -124,7 +122,6 @@ fun ProfileScreen(
                         .padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // ---- Cuenta (Nombre/Email) ----
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,
@@ -178,7 +175,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // ---- Estadísticas (con Strings) ----
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,
@@ -221,7 +217,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // ---- Acciones ----
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,

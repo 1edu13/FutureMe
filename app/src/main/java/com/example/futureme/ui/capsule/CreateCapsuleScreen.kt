@@ -51,8 +51,12 @@ fun CreateCapsuleScreen(
     val saveSuccess by capsuleViewModel.saveSuccess.collectAsState()
 
     LaunchedEffect(saveSuccess) {
-        if (saveSuccess) onNavigateBack()
+        if (saveSuccess) {
+            capsuleViewModel.clearSaveSuccess()
+            onNavigateBack()
+        }
     }
+
 
     CreateCapsuleScreenContent(
         isLoading = isLoading,

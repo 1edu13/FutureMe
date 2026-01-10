@@ -37,7 +37,7 @@ import com.example.futureme.ui.theme.ThemeViewModelFactory
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-// ✅ CAMBIO 1: Heredar de AppCompatActivity para el idioma
+
 class MainActivity : AppCompatActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
             val themeVm: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(context))
             val isDark by themeVm.isDark.collectAsState()
 
-            // ✅ CAMBIO 2: Detectar idioma actual
             val localeList = AppCompatDelegate.getApplicationLocales()
             val currentLanguageCode = if (!localeList.isEmpty) {
                 localeList[0]?.language ?: Locale.getDefault().language
@@ -69,7 +68,6 @@ class MainActivity : AppCompatActivity() {
                     currentLanguageCode = currentLanguageCode,
                     onToggleTheme = { enabled -> themeVm.setDark(enabled) },
                     onLanguageChange = { newCode ->
-                        // ✅ CAMBIO 3: Cambiar idioma nativamente
                         val appLocale = LocaleListCompat.forLanguageTags(newCode)
                         AppCompatDelegate.setApplicationLocales(appLocale)
                     }
@@ -255,7 +253,6 @@ private fun AppNavContent(
             )
         }
 
-        // ✅ CAMBIO 4: Pasar parámetros de idioma a SettingsScreen
         composable(Screen.Settings.route) {
             SettingsScreen(
                 isDark = isDark,

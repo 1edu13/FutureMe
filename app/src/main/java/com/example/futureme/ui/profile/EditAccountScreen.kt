@@ -34,7 +34,6 @@ fun EditAccountScreen(
     val success by authViewModel.success.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
 
-    // 🎨 Paleta (igual enfoque que Settings)
     val gold = OroAmbar
     val titleGold = if (isDark) OroAmbar else AzulProfundo
     val textPrimary = if (isDark) BlancoAzulado else AzulProfundo
@@ -50,16 +49,13 @@ fun EditAccountScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Form state: change name (MISMA LÓGICA)
     var currentPasswordForName by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
 
-    // Form state: change password (MISMA LÓGICA)
     var currentPasswordForPass by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var repeatNewPassword by remember { mutableStateOf("") }
 
-    // Snackbars (MISMA LÓGICA)
     LaunchedEffect(error) {
         if (!error.isNullOrBlank()) {
             snackbarHostState.showSnackbar(error!!)
@@ -114,7 +110,6 @@ fun EditAccountScreen(
                         .padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // ===== Cambiar nombre =====
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,
@@ -187,7 +182,7 @@ fun EditAccountScreen(
                         }
                     }
 
-                    // ===== Cambiar contraseña =====
+
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color.Transparent,

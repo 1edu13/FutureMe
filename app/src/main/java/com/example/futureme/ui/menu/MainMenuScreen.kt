@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource // ✅ Importante para las traducciones
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,11 +31,10 @@ fun MainMenuScreen(
     onGoToProfile: () -> Unit,
     onGoToSettings: () -> Unit
 ) {
-    // 🎨 CONSUMIMOS EL THEME DIRECTAMENTE
+
     val gold = MaterialTheme.colorScheme.primary
     val textPrimary = MaterialTheme.colorScheme.onSurface
 
-    // Degradado Seda/Arena usando tus constantes de Color.kt
     val cardBrush = if (isDark) {
         Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, AzulProfundo))
     } else {
@@ -51,7 +50,6 @@ fun MainMenuScreen(
                 Column {
                     TopAppBar(
                         title = {
-                            // ✅ CORREGIDO: Usar recurso
                             Text(
                                 text = stringResource(R.string.menu_title),
                                 color = gold,
@@ -62,7 +60,6 @@ fun MainMenuScreen(
                         navigationIcon = {
                             if (onMenuClick != null) {
                                 IconButton(onClick = onMenuClick) {
-                                    // ✅ CORREGIDO: Usar recurso
                                     Icon(
                                         imageVector = Icons.Default.Menu,
                                         contentDescription = stringResource(R.string.content_desc_menu),
@@ -84,7 +81,6 @@ fun MainMenuScreen(
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                // -------- BOTÓN PRINCIPAL --------
                 Surface(
                     modifier = Modifier.fillMaxWidth().height(100.dp),
                     shape = RoundedCornerShape(28.dp),
@@ -106,7 +102,6 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(26.dp))
 
-                // -------- BOTONES SECUNDARIOS --------
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
